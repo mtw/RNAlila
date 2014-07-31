@@ -21,6 +21,8 @@ AC_CANONICAL_HOST
 
 # check for custom libs
 PKG_CHECK_MODULES(ViennaRNA, RNAlib2 >= 2.2)
+PKG_CHECK_MODULES(GSL, gsl >= 1.1)
+PKG_CHECK_MODULES([Glib2], [glib-2.0 >= 2.24.1])
 
 # check system programs
 AC_PATH_PROG([MAKE],[make],[make])
