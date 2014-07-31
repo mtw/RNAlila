@@ -1,5 +1,8 @@
 *.~1*
 *.o
+*.a
+./src/RNAlila/*.o
+./src/RNAlila/*.a
 .deps/
 Makefile
 aclocal.m4
