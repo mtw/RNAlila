@@ -1,5 +1,4 @@
 *.~1*
-*.in
 *.o
 .deps/
 Makefile
