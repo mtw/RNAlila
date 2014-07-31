@@ -4,8 +4,8 @@ pkginclude_HEADERS = moves.h
 
 libRNAlila_a_SOURCES = moves.c
 
-AM_CFLAGS =  ${GSL_CFLAGS} ${ViennaRNA_CFLAGS} -g3 -O0
-AM_CPPFLAGS = -I${includedir} -I.
+AM_CFLAGS =  ${Glib2_CFLAGS} ${GSL_CFLAGS} ${ViennaRNA_CFLAGS} -g3 -O0
+AM_CPPFLAGS = ${Glib2_LIBS} -I${includedir} -I.
 
 EXTRA_DIST=VERSION.txt
 
