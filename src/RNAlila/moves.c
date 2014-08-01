@@ -3,33 +3,33 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-//#include "globals.h"
-//#include "wl_options.h"
 #include "moves.h"
+#include <ViennaRNA/eval.h>
 #include <ViennaRNA/move_set.h>
 
 #define MINGAP 3
   
-//int get_list(struct_en*, struct_en*);
 static int construct_moves_new(const char*, const short*, int , move_str **);
 inline int try_insert_seq2(const char*, int, int);
 inline int compat(const char, const char);
-void mtw_dump_pt(const short*);
+void lila_dump_pt(const short*);
 
 /*
-  compute a random move on a pair table
+  get random move operation on a pair table
   returns move operations to be applied to pt in order to perform the move
- */
+*/
 move_str
-get_random_move_pt(const char *seq, const short int *pt)
+lila_random_move_pt(const char *seq, const short int *pt)
 {
   move_str r,*mvs=NULL;
-  int i,count;
+  int count;
   
   count = construct_moves_new((const char *)seq,pt,1,&mvs);
   /*
-    for (i = 0; i<count; i++) {  
+    {
+    for (int i = 0; i<count; i++) {  
     printf("%d %d\n", mvs[i].left, mvs[i].right);
+    }
     }
   */
   
@@ -40,11 +40,56 @@ get_random_move_pt(const char *seq, const short int *pt)
 }
 
 /*
-  apply move operation on a pair table
+  Get gradient (steepest descent) move operation to lexicographically
+  smallest neighbor on a pair table. Returns move operations to be
+  applied to pt in order to perform the move
+*/
+move_str
+lila_gradient_move_pt(const char *seq, const short int *pt)
+{
+  move_str r,*mvs=NULL;
+  int emove,count,i,k=0,mindiff=100000;
+  int max_neighbours;
+
+  typedef struct _nb {
+    char *struc;
+    int ediff;
+    short n;
+  } nb_t;
+  
+  nb_t *neighbours = NULL;
+  
+  count = construct_moves_new((const char *)seq,pt,1,&mvs);
+  neighbours = (nb_t*)calloc(count+1,sizeof(nb_t));
+  
+  for(i=0;i<count;i++) {
+    neighbours[i].ediff = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
+    neighbours[i].struc = vrna_pt_to_db(pt);
+    neighbours[i].n = i;
+  }
+    
+  }
+  free(neighbours);
+}
+
+/*
+  get adaptive move operation on a pair table
+  returns move operations to be applied to pt in order to perform the move
+*/
+move_str
+lila_adaptive_move_pt(const char *seq, const short int *pt)
+{
+
+}
+
+
+
+/*
+  apply one move operation on a pair table
 */
 void
-apply_move_pt(short int *pt,
-	      move_str m)
+lila_apply_move_pt(short int *pt,
+		   move_str m)
 {
   if(m.left < 0){
     pt[(int)(fabs(m.left))] = 0;

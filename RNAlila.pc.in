@@ -6,6 +6,8 @@ includedir=@includedir@
 Name: @PACKAGE_NAME@
 Description: The ViennaRNA landscape library
 Version: @PACKAGE_VERSION@
+Requires: RNAlib2 >= 2.2 gsl
+Requires.private: glib-2.0 
 URL: @PACKAGE_URL@
 Libs: -L${libdir} -lRNAlila
 Cflags: -I${includedir}
