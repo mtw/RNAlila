@@ -1,6 +1,7 @@
 *.~1*
 *.o
 *.a
+*.pc
 ./src/RNAlila/*.o
 ./src/RNAlila/*.a
 .deps/
