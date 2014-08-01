@@ -1,30 +1,41 @@
+/*
+  moves.c : move-set related routines for RNAlila
+  Last changed Time-stamp: <2014-08-02 00:27:58 mtw>
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-#include "moves.h"
-#include <ViennaRNA/eval.h>
-#include <ViennaRNA/move_set.h>
+#include <lila.h>
+#include <moves.h>
 
 #define MINGAP 3
   
-static int construct_moves_new(const char*, const short*, int , move_str **);
+static int lila_construct_moves(const char*, const short*, int , move_str **);
+static int lila_RNAlexicographicalOrder(const void *, const void *);
 inline int try_insert_seq2(const char*, int, int);
 inline int compat(const char, const char);
 void lila_dump_pt(const short*);
+
+typedef struct _nb {
+  char *struc;
+  int ediff;
+  short n;
+} nbT;
 
 /*
   get random move operation on a pair table
   returns move operations to be applied to pt in order to perform the move
 */
 move_str
-lila_random_move_pt(const char *seq, const short int *pt)
+lila_random_move_pt(const char *seq, short int *pt)
 {
   move_str r,*mvs=NULL;
   int count;
   
-  count = construct_moves_new((const char *)seq,pt,1,&mvs);
+  count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   /*
     {
     for (int i = 0; i<count; i++) {  
@@ -45,31 +56,31 @@ lila_random_move_pt(const char *seq, const short int *pt)
   applied to pt in order to perform the move
 */
 move_str
-lila_gradient_move_pt(const char *seq, const short int *pt)
+lila_gradient_move_pt(const char *seq, short int *pt)
 {
   move_str r,*mvs=NULL;
   int emove,count,i,k=0,mindiff=100000;
   int max_neighbours;
-
-  typedef struct _nb {
-    char *struc;
-    int ediff;
-    short n;
-  } nb_t;
+  nbT *neighbours = NULL;
   
-  nb_t *neighbours = NULL;
-  
-  count = construct_moves_new((const char *)seq,pt,1,&mvs);
-  neighbours = (nb_t*)calloc(count+1,sizeof(nb_t));
+  count = lila_construct_moves((const char *)seq,pt,1,&mvs);
+  neighbours = (nbT*)calloc(count+1,sizeof(nbT));
   
   for(i=0;i<count;i++) {
     neighbours[i].ediff = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
     neighbours[i].struc = vrna_pt_to_db(pt);
     neighbours[i].n = i;
   }
-    
-  }
+  qsort(neighbours, count, sizeof(nbT), lila_RNAlexicographicalOrder);
+  
+  r.left  = mvs[neighbours[0].n].left;
+  r.right = mvs[neighbours[0].n].right;
+
+  for(i=0;i<count;i++) 
+    free(neighbours[i].struc);
   free(neighbours);
+  free(mvs);
+  return r;
 }
 
 /*
@@ -77,9 +88,11 @@ lila_gradient_move_pt(const char *seq, const short int *pt)
   returns move operations to be applied to pt in order to perform the move
 */
 move_str
-lila_adaptive_move_pt(const char *seq, const short int *pt)
+lila_adaptive_move_pt(const char *seq, short int *pt)
 {
+  move_str r;
 
+  return r;
 }
 
 
@@ -103,7 +116,7 @@ lila_apply_move_pt(short int *pt,
 }
 
 static int
-construct_moves_new(const char *seq,
+lila_construct_moves(const char *seq,
 		    const short *structure,
 		    int permute,
 		    move_str **array)
@@ -198,7 +211,7 @@ compat(const char a,
 
 
 void
-mtw_dump_pt(const short *pairtable)
+lila_dump_pt(const short *pairtable)
 {
   int i;
   printf("> ");
@@ -206,5 +219,23 @@ mtw_dump_pt(const short *pairtable)
     printf("%i ",*(pairtable+i));
   }
   printf("\n");
+}
+
+static int 
+lila_RNAlexicographicalOrder(const void *a, const void *b)
+{
+  const nbT *ma = a;
+  const nbT *mb = b;
+  
+  int comp = ma->ediff - mb->ediff;
+
+  if (comp < 0)
+    return -1;
+  
+  if (comp > 0)
+    return 1;
+  
+  comp = strcmp(ma->struc, mb->struc);
+  return comp;
 }
 
