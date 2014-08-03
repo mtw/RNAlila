@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-08-01 23:00:26 mtw>
+  Last changed Time-stamp: <2014-08-03 23:31:40 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -14,9 +14,9 @@
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/params.h"
-#include <ViennaRNA/structure_utils.h>
-#include <ViennaRNA/move_set.h>
-#include <ViennaRNA/subopt.h>
+#include "ViennaRNA/structure_utils.h"
+#include "ViennaRNA/move_set.h"
+#include "ViennaRNA/subopt.h"
 
 /* functions */
 void lila_initialize_vRNA (const char *seq);

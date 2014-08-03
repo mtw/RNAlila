@@ -1,1 +1,1 @@
-SUBDIRS = RNAlila
+SUBDIRS = RNAlila bin

@@ -1,0 +1,41 @@
+package "RNAwalk"
+
+purpose "Perform adaptive|gradient|random walks with RNA secondary structures
+"
+args "--file-name=RNAwalk_cmdl --unamed-opts --default-optional --func-name=RNAwalk_cmdline_parser --arg-struct-name=RNAwalk_args_info"
+
+option "length" l 
+"Specify walk length. If the walk ends before the predefined number\
+of steps is reached (e.g. in case a local minimum has been reached in\
+an adaptive or gradient walk) is reached, the walk will terminate\n\n"
+int
+default="100000" 
+optional
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+double
+optional
+
+option "walk" -
+"Specify type of walk\n\n\
+A ... Adaptive walk\n\
+G ... Gradient Walk\n\
+R ... Random walk\n\n"
+string
+typestr="AGR"
+default="G"
+optional
+
+option "verbose" v  
+"Verbose output\n\n" 
+flag 
+off
+
+option "debug" d 
+"Debugging output\n\n" 
+flag 
+off
+
+
+

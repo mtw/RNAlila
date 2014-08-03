@@ -53,7 +53,7 @@ AC_FUNC_REALLOC
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([memset pow strdup strcpy floor])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/RNAlila/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/RNAlila/Makefile src/bin/Makefile])
 AC_CONFIG_FILES([RNAlila.pc])
 AC_OUTPUT
 
