@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-08-06 17:03:42 mtw>
+  Last changed Time-stamp: <2014-08-07 00:30:03 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -20,25 +20,38 @@
 #include "ViennaRNA/energy_const.h"
 
 /* structs */
-typedef _vRNAcommon {
+typedef struct _vRNAcommon {
   double temperature;
   double betaScale;
   int dangles;
   int noLP;
 } vRNAcommonT;
 
+typedef struct _lilass {
+  char *startseq;
+  char *startstruc;
+  int length;
+} lilassT;
+
 /* variables */
 paramT *P;
 model_detailsT md;
 vrna_fold_compound *vc;
 short int *pt,*s0,*s1;
-vRNAcommonT vcd; /* ViennaRNA common (model) details */
+vRNAcommonT vcd;         /* ViennaRNA common (model) details */
+lilassT lilass;          /* start sequence && start structure */
 
 /* functions */
-void lila_initialize_vRNA (const char *seq);
-void process_vcd_options(const short temp_given,
-		    const double temp_arg,
-		    const short dangles_given,
-			 const int dangles_arg);
-{
+void lila_parse_seq_struc(FILE *fp);
+void lila_ini_vRNA(const char *seq);
+void lila_ini_vcd_options(void);
+void lila_set_vcd_options(const unsigned int temp_given,
+			  const unsigned int betaScale_given,
+			  const unsigned int dangles_given,
+			  const unsigned int noLP_given,
+			  const double temp_arg,
+			  const double betaScale_arg,
+			  const int dangles_arg,
+			  const int noLP_flag);
+
 #endif

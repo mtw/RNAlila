@@ -12,23 +12,17 @@
 /* functions */
 static void parse_infile(FILE *fp);
 int get_list(struct_en*, struct_en*);
-void ini_ViennaRNA(const char*);
 static void RNAwalk_memoryCleanup(void);
-static void ini_RNAwalk(void);
-static void ini_globs(void);
+static void process_app_options(void);
 
 /* structures */
 typedef struct _rnawalk {
   FILE *INFILE;
-  char *seq;
-  char *struc;
-  int len;
-  double temp;
+  int len;                /* walk length */
 } rnawalk_optT;
 
 static rnawalk_optT rnawalk_opt;
 struct RNAwalk_args_info args_info;
-
 
 int
 main(int argc, char **argv)
@@ -38,11 +32,21 @@ main(int argc, char **argv)
   double erange;
   move_str m;
 
- 
-  process_options(argc,argv);
+  lila_ini_vcd_options();
+  process_app_options(argc,argv); /* app-specific options*/
   rnawalk_opt.INFILE = stdin;
-  parse_infile(rnawalk_opt.INFILE);
-  ini_ViennaRNA();
+  /* TODO: get sequence from input file */
+  lila_parse_seq_struc(rnawalk_opt.INFILE);   /* process input */
+  vrna_md_set_default(&md);       /* set default vRNA model details */
+  lila_set_vcd_options(args_info.temp_given, /* adjust common vRNA options */
+		       args_info.betaScale_given,
+		       args_info.dangles_given,
+		       args_info.noLP_given,
+		       args_info.temp_arg,
+		       args_info.betaScale_arg,
+		       args_info.dangles_arg,
+		       args_info.noLP_flag); 
+  lila_ini_vRNA(lilass.startseq);
   srand(time(NULL));
   
   { // compute mfe
@@ -51,10 +55,12 @@ main(int argc, char **argv)
     printf ("mfe = %6.2f\n",mfe);
   }
   
-  pt = vrna_pt_get(rnawalk_opt.my_struc);
-  s0 = get_sequence_encoding(rnawalk_opt.my_seq,0,&(P->model_details));
-  s1 = get_sequence_encoding(rnawalk_opt.my_seq,1,&(P->model_details));
-  		 
+  pt = vrna_pt_get(lilass.startstruc);
+  /*
+    s0 = get_sequence_encoding(rnawalk_opt.my_seq,0,&(P->model_details));
+    s1 = get_sequence_encoding(rnawalk_opt.my_seq,1,&(P->model_details));
+  */
+		 
   //mtw_dump_pt(pt);
   //char *str = vrna_pt_to_db(pt);
   //printf(">%s<\n",str);
@@ -84,65 +90,23 @@ main(int argc, char **argv)
 
 /**/
 static void
-process_options(void)
+process_app_options(void)
 {
-  ini_globs();
+  rnawalk_opt.INFILE      = NULL;
   if (RNAwalk_cmdline_parser (argc, argv, &args_info) != 0){
     fprintf(stderr, "error while parsing command-line options\n");
     exit(EXIT_FAILURE);
-  }
+  } 
 
-  process_vcd_options(); /* temperature, dangles, noLP, betascale */
- 
-  
-}
+  /* TODO non vcd options */
 
-
-/**/
-void
-ini_ViennaRNA (const char *seq)
-{
-  set_model_details(&md); /* use current global model */
-  P = vrna_get_energy_contributions(md);
-  vc = vrna_get_fold_compound(seq, &md,VRNA_OPTION_MFE);
-}
-
-/**/
-static void
-ini_globs(void)
-{
-  rnawalk_opt.INFILE      = NULL;
-  vcd.temperature         = VRNA_TEMP_DEFAULT;
-}
-
-
-/**/
-static void
-parse_infile(FILE *fp)
-{
-  char *line=NULL;
-  
-  line = get_line(fp);
-  /* skip comment lines */
-  while ((*line == '*')||(*line == '\0')||(*line == '>')) {
-    free(line);
-    line = get_line(fp);
-  }
-  my_seq  = (char *) calloc (strlen(line)+1, sizeof(char));
-  my_struc = (char *) calloc (strlen(line)+1, sizeof(char));
-  assert(my_seq != NULL); assert(my_struc != NULL);
-  sscanf(line, "%s", my_seq);
-  free (line);
-  line = get_line(fp);
-  sscanf(line, "%s", my_struc);
-  free (line);
-  my_len = strlen(my_seq);
+  RNAwalk_cmdline_parser_free(&args_info);
 }
 
 /**/
 static void
 RNAwalk_memoryCleanup (void)
 {
-  free(rnawalk_opt.my_seq);
-  free(rnawalk_opt.my_struc);
+  free(lilass.startseq);
+  free(lilass.startstruc);
 }

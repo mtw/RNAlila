@@ -38,24 +38,37 @@ extern "C" {
 struct RNAwalk_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
+  const char *full_help_help; /**< @brief Print help, including hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int length_arg;	/**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate\n\n (default='100000').  */
-  char * length_orig;	/**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate\n\n original value given at command line.  */
-  const char *length_help; /**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate\n\n help description.  */
+  double betaScale_arg;	/**< @brief Set the scaling of the Boltzmann factors.\n (default='1.').  */
+  char * betaScale_orig;	/**< @brief Set the scaling of the Boltzmann factors.\n original value given at command line.  */
+  const char *betaScale_help; /**< @brief Set the scaling of the Boltzmann factors.\n help description.  */
+  int dangles_arg;	/**< @brief How to treat \"dangling end\" energies for bases adjacent to helicesin free ends and multi-loops\n (default='2').  */
+  char * dangles_orig;	/**< @brief How to treat \"dangling end\" energies for bases adjacent to helicesin free ends and multi-loops\n original value given at command line.  */
+  const char *dangles_help; /**< @brief How to treat \"dangling end\" energies for bases adjacent to helicesin free ends and multi-loops\n help description.  */
+  int length_arg;	/**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate.\n\n (default='100000').  */
+  char * length_orig;	/**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate.\n\n original value given at command line.  */
+  const char *length_help; /**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate.\n\n help description.  */
+  int noLP_flag;	/**< @brief Produce structures without lonely pairs (helices of length 1).\n (default=off).  */
+  const char *noLP_help; /**< @brief Produce structures without lonely pairs (helices of length 1).\n help description.  */
   double temp_arg;	/**< @brief Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n.  */
   char * temp_orig;	/**< @brief Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n original value given at command line.  */
   const char *temp_help; /**< @brief Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n help description.  */
-  char * walk_arg;	/**< @brief Specify type of walk\n\nA ... Adaptive walk\nG ... Gradient Walk\nR ... Random walk\n\n (default='G').  */
-  char * walk_orig;	/**< @brief Specify type of walk\n\nA ... Adaptive walk\nG ... Gradient Walk\nR ... Random walk\n\n original value given at command line.  */
-  const char *walk_help; /**< @brief Specify type of walk\n\nA ... Adaptive walk\nG ... Gradient Walk\nR ... Random walk\n\n help description.  */
+  char * walk_arg;	/**< @brief Specify type of walk.\n\nA ... Adaptive walk\nG ... Gradient Walk\nR ... Random walk\n\n (default='G').  */
+  char * walk_orig;	/**< @brief Specify type of walk.\n\nA ... Adaptive walk\nG ... Gradient Walk\nR ... Random walk\n\n original value given at command line.  */
+  const char *walk_help; /**< @brief Specify type of walk.\n\nA ... Adaptive walk\nG ... Gradient Walk\nR ... Random walk\n\n help description.  */
   int verbose_flag;	/**< @brief Verbose output\n\n (default=off).  */
   const char *verbose_help; /**< @brief Verbose output\n\n help description.  */
   int debug_flag;	/**< @brief Debugging output\n\n (default=off).  */
   const char *debug_help; /**< @brief Debugging output\n\n help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
+  unsigned int full_help_given ;	/**< @brief Whether full-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
+  unsigned int betaScale_given ;	/**< @brief Whether betaScale was given.  */
+  unsigned int dangles_given ;	/**< @brief Whether dangles was given.  */
   unsigned int length_given ;	/**< @brief Whether length was given.  */
+  unsigned int noLP_given ;	/**< @brief Whether noLP was given.  */
   unsigned int temp_given ;	/**< @brief Whether temp was given.  */
   unsigned int walk_given ;	/**< @brief Whether walk was given.  */
   unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
@@ -81,6 +94,8 @@ extern const char *RNAwalk_args_info_purpose;
 extern const char *RNAwalk_args_info_usage;
 /** @brief all the lines making the help output */
 extern const char *RNAwalk_args_info_help[];
+/** @brief all the lines making the full help output (including hidden options) */
+extern const char *RNAwalk_args_info_full_help[];
 
 /**
  * The command line parser
@@ -142,6 +157,10 @@ int RNAwalk_cmdline_parser_file_save(const char *filename,
  * Print the help
  */
 void RNAwalk_cmdline_parser_print_help(void);
+/**
+ * Print the full help (including hidden options)
+ */
+void RNAwalk_cmdline_parser_print_full_help(void);
 /**
  * Print the version
  */

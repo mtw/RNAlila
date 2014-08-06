@@ -7,6 +7,9 @@ src/RNAlila/*.o
 src/RNAlila/*.a
 src/RNAlila/*.c~
 src/RNAlila/*.h~
+src/bin/RNAwalk_cmdl.c
+src/bin/RNAwalk_cmdl.h
+src/bin/*#
 a.out
 .deps/
 Makefile
@@ -22,3 +25,4 @@ Makefile.in
 config.h.in
 src/Makefile.in
 src/RNAlila/Makefile.in
+mysort.c
