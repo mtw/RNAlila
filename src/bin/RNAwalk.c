@@ -9,39 +9,40 @@
 #include "RNAwalk_cmdl.h"
 
 
+/* functions */
 static void parse_infile(FILE *fp);
 int get_list(struct_en*, struct_en*);
-void ini_vRNA(const char*);
+void ini_ViennaRNA(const char*);
 static void RNAwalk_memoryCleanup(void);
 static void ini_RNAwalk(void);
 static void ini_globs(void);
 
-struct RNAwalk_args_info args_info;
-model_detailsT md;
-paramT *P = NULL;
-vrna_fold_compound *vc = NULL;
-
+/* structures */
 typedef struct _rnawalk {
   FILE *INFILE;
-  char *my_seq;
-  char *my_struc;
-  int my_len;
+  char *seq;
+  char *struc;
+  int len;
   double temp;
 } rnawalk_optT;
 
 static rnawalk_optT rnawalk_opt;
+struct RNAwalk_args_info args_info;
 
-int main() {
+
+int
+main(int argc, char **argv)
+{
   int e,enew,emove;
   float mfe;
-  short int *pt,*s0,*s1;
   double erange;
   move_str m;
 
-  ini_RNAwalk();
+ 
+  process_options(argc,argv);
   rnawalk_opt.INFILE = stdin;
   parse_infile(rnawalk_opt.INFILE);
-  ini_vRNA(rnawalk_opt.my_seq);
+  ini_ViennaRNA();
   srand(time(NULL));
   
   { // compute mfe
@@ -83,22 +84,23 @@ int main() {
 
 /**/
 static void
-ini_RNAwalk(void)
+process_options(void)
 {
   ini_globs();
   if (RNAwalk_cmdline_parser (argc, argv, &args_info) != 0){
     fprintf(stderr, "error while parsing command-line options\n");
     exit(EXIT_FAILURE);
   }
-  /* temperature */
-  if(args_info.temp_given)
-    md.temperature = temperature = args_info.temp_arg;
+
+  process_vcd_options(); /* temperature, dangles, noLP, betascale */
+ 
   
 }
 
+
 /**/
 void
-ini_vRNA (const char *seq)
+ini_ViennaRNA (const char *seq)
 {
   set_model_details(&md); /* use current global model */
   P = vrna_get_energy_contributions(md);
@@ -110,8 +112,7 @@ static void
 ini_globs(void)
 {
   rnawalk_opt.INFILE      = NULL;
-  rnawalk_opt.
-    
+  vcd.temperature         = VRNA_TEMP_DEFAULT;
 }
 
 
