@@ -60,5 +60,6 @@ AC_OUTPUT
 # Inform user
 AC_MSG_NOTICE(
 [
+
 You can run make now.
 ])
