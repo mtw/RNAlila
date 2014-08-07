@@ -3,6 +3,7 @@
 *.o
 *.a
 *.pc
+*.ps
 src/RNAlila/*.o
 src/RNAlila/*.a
 src/RNAlila/*.c~
@@ -10,6 +11,7 @@ src/RNAlila/*.h~
 src/bin/RNAwalk_cmdl.c
 src/bin/RNAwalk_cmdl.h
 src/bin/*#
+src/bin/RNAwalk
 a.out
 .deps/
 Makefile
