@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-08-07 00:31:19 mtw>
+  Last changed Time-stamp: <2014-08-07 14:15:18 mtw>
 */
 
 #include <stdio.h>
@@ -25,7 +25,7 @@ lila_ini_vcd_options(void)
 void
 lila_ini_vRNA (const char *seq)
 {
-  P = vrna_get_energy_contributions(md);
+  P  = vrna_get_energy_contributions(md);
   vc = vrna_get_fold_compound(seq, &md,VRNA_OPTION_MFE);
   s0 = vrna_seq_encode_simple(seq,&(P->model_details));
   s1 = vrna_seq_encode(seq,&(P->model_details));
@@ -89,14 +89,31 @@ lila_parse_seq_struc(FILE *fp)
     free(line);
     line = get_line(fp);
   }
-  lilass.startseq  = (char *) calloc (strlen(line)+1, sizeof(char));
-  lilass.startstruc = (char *) calloc (strlen(line)+1, sizeof(char));
-  assert(lilass.startseq != NULL); assert(lilass.startstruc != NULL);
-  sscanf(line, "%s", lilass.startseq);
+  lilass.sequence  = (char *) calloc (strlen(line)+1, sizeof(char));
+  lilass.structure = (char *) calloc (strlen(line)+1, sizeof(char));
+  assert(lilass.sequence != NULL); assert(lilass.structure != NULL);
+  sscanf(line, "%s", lilass.sequence);
   free (line);
   line = get_line(fp);
-  sscanf(line, "%s", lilass.startstruc);
+  sscanf(line, "%s", lilass.structure);
   free (line);
-  lilass.length = strlen(lilass.startseq);
+  lilass.length = strlen(lilass.sequence);
 }
+
+/**/
+char *
+lila_basename(char *arg)
+{
+  int len;
+  char *s=NULL, *t=NULL;
+  
+  s = strdup(arg);
+  len = strlen(s);
+  t = rindex(s, '/');
+  if (t != NULL) memmove(s, t+1, (len-(t-s))*sizeof(char));
+  t = NULL; t = index(s, '.');
+  if (t != NULL) *t = '\0';
+  return s;
+}
+
 

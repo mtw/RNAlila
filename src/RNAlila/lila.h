@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-08-07 00:30:03 mtw>
+  Last changed Time-stamp: <2014-08-07 14:15:25 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -28,8 +28,8 @@ typedef struct _vRNAcommon {
 } vRNAcommonT;
 
 typedef struct _lilass {
-  char *startseq;
-  char *startstruc;
+  char *sequence;
+  char *structure;
   int length;
 } lilassT;
 
@@ -42,6 +42,7 @@ vRNAcommonT vcd;         /* ViennaRNA common (model) details */
 lilassT lilass;          /* start sequence && start structure */
 
 /* functions */
+char *lila_basename(char *);
 void lila_parse_seq_struc(FILE *fp);
 void lila_ini_vRNA(const char *seq);
 void lila_ini_vcd_options(void);

@@ -4,12 +4,33 @@ purpose "Perform adaptive|gradient|random walks with RNA secondary structures
 "
 args "--file-name=RNAwalk_cmdl --unamed-opts --default-optional --func-name=RNAwalk_cmdline_parser --arg-struct-name=RNAwalk_args_info"
 
-option  "betaScale" -
-"Set the scaling of the Boltzmann factors.\n"
-double
-default="1."
+option "walktype" t
+"Specify type of walk.\n\
+A ... Adaptive walk\n\
+G ... Gradient Walk\n\
+R ... Random walk\n"
+string
+typestr="AGR"
+default="G"
 optional
-hidden
+
+option "walklength" l 
+"Specify walk length. If the walk ends before the predefined number\
+of steps is reached (e.g. in case a local minimum has been reached in\
+an adaptive or gradient walk) is reached, the walk will terminate.\n"
+int
+default="100000" 
+optional
+
+section "ViennaRNA-specific options"
+sectiondesc="The options below directly influence the folding and energy
+evaluation by the ViennaRNA routines.\n\n"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C.\n"
+double
+default="37"
+optional
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices\ 
@@ -18,42 +39,25 @@ int
 default="2"
 optional
 
-
-option "length" l 
-"Specify walk length. If the walk ends before the predefined number\
-of steps is reached (e.g. in case a local minimum has been reached in\
-an adaptive or gradient walk) is reached, the walk will terminate.\n\n"
-int
-default="100000" 
-optional
-
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 flag
 off
 
-option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors.\n"
 double
+default="1."
 optional
-
-option "walk" -
-"Specify type of walk.\n\n\
-A ... Adaptive walk\n\
-G ... Gradient Walk\n\
-R ... Random walk\n\n"
-string
-typestr="AGR"
-default="G"
-optional
+hidden
 
 option "verbose" v  
-"Verbose output\n\n" 
+"Verbose output\n" 
 flag 
 off
 
 option "debug" - 
-"Debugging output\n\n" 
+"Debugging output\n" 
 flag 
 off
 
