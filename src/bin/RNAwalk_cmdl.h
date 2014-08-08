@@ -40,26 +40,26 @@ struct RNAwalk_args_info
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *full_help_help; /**< @brief Print help, including hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  char * walktype_arg;	/**< @brief Specify type of walk.
-  A ... Adaptive walk
-  G ... Gradient Walk
-  R ... Random walk
+  char * walktype_arg;	/**< @brief Specify walk type.
+  A ... adaptive walk
+  G ... gradient Walk
+  R ... random walk
  (default='G').  */
-  char * walktype_orig;	/**< @brief Specify type of walk.
-  A ... Adaptive walk
-  G ... Gradient Walk
-  R ... Random walk
+  char * walktype_orig;	/**< @brief Specify walk type.
+  A ... adaptive walk
+  G ... gradient Walk
+  R ... random walk
  original value given at command line.  */
-  const char *walktype_help; /**< @brief Specify type of walk.
-  A ... Adaptive walk
-  G ... Gradient Walk
-  R ... Random walk
+  const char *walktype_help; /**< @brief Specify walk type.
+  A ... adaptive walk
+  G ... gradient Walk
+  R ... random walk
  help description.  */
-  int walklength_arg;	/**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate.
+  int walklength_arg;	/**< @brief Specify walk length. If the walk ends before the predefined number of steps is reached, e.g. in case a local minimum has been reached in an adaptive or gradient walk, the walk will terminate.
  (default='100000').  */
-  char * walklength_orig;	/**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate.
+  char * walklength_orig;	/**< @brief Specify walk length. If the walk ends before the predefined number of steps is reached, e.g. in case a local minimum has been reached in an adaptive or gradient walk, the walk will terminate.
  original value given at command line.  */
-  const char *walklength_help; /**< @brief Specify walk length. If the walk ends before the predefined numberof steps is reached (e.g. in case a local minimum has been reached inan adaptive or gradient walk) is reached, the walk will terminate.
+  const char *walklength_help; /**< @brief Specify walk length. If the walk ends before the predefined number of steps is reached, e.g. in case a local minimum has been reached in an adaptive or gradient walk, the walk will terminate.
  help description.  */
   double temp_arg;	/**< @brief Rescale energy parameters to a temperature of temp C.
  (default='37').  */

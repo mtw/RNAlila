@@ -5,19 +5,19 @@ purpose "Perform adaptive|gradient|random walks with RNA secondary structures
 args "--file-name=RNAwalk_cmdl --unamed-opts --default-optional --func-name=RNAwalk_cmdline_parser --arg-struct-name=RNAwalk_args_info"
 
 option "walktype" t
-"Specify type of walk.\n\
-A ... Adaptive walk\n\
-G ... Gradient Walk\n\
-R ... Random walk\n"
+"Specify walk type.\n\
+A ... adaptive walk\n\
+G ... gradient Walk\n\
+R ... random walk\n"
 string
-typestr="AGR"
+typestr="[A|G|R]"
 default="G"
 optional
 
 option "walklength" l 
-"Specify walk length. If the walk ends before the predefined number\
-of steps is reached (e.g. in case a local minimum has been reached in\
-an adaptive or gradient walk) is reached, the walk will terminate.\n"
+"Specify walk length. If the walk ends before the predefined number \
+of steps is reached, e.g. in case a local minimum has been reached in \
+an adaptive or gradient walk, the walk will terminate.\n"
 int
 default="100000" 
 optional

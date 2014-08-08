@@ -28,10 +28,11 @@ struct RNAwalk_args_info args_info;
 int
 main(int argc, char **argv)
 {
-  int e,enew,emove;
+  int e,enew,emove,len=0;
   float mfe;
   double erange;
   move_str m;
+  char *newstruc=NULL;
   
   /* initialize ViennaRNA common options */
   lila_ini_vcd_options();
@@ -56,23 +57,82 @@ main(int argc, char **argv)
 		       args_info.noLP_flag); 
   lila_ini_vRNA(lilass.sequence);
   srand(time(NULL));
-  
+
+  printf ("input sequence:\n");
+  printf ("%s\n",lilass.sequence);
+  printf ("MFE is:\n");
   { // compute mfe
-    mfe = vrna_fold(vc,NULL);
+    char *ss=(char*)calloc(strlen((lilass.sequence)+1),sizeof(char));
+    mfe = vrna_fold(vc,ss);
     vrna_free_fold_compound(vc);
-    printf ("mfe = %6.2f\n",mfe);
+    //   ss = vrna_pt_to_db(pt);
+    printf ("%s (%6.2f)\n",ss,mfe);
+    free(ss);
   }
   
   pt = vrna_pt_get(lilass.structure);
-  lila_dump_pt(pt);
+  e = vrna_eval_structure_pt(lilass.sequence,pt,P);
+  
+  printf ("Start structure:\n");
+  printf ("%s (%6.2f)\n",lilass.structure, (float)e/100);
+ 
+  // lila_dump_pt(pt);
+
+  if(local_opt.walktype == 'R'){
+    printf ("performing random walk\n");
+    while(len<local_opt.walklen){
+      /* make a random move */
+      m = lila_random_move_pt(lilass.sequence,pt);
+      /* compute energy difference for this move */
+      emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+      /* evaluate energy of the new structure */
+      enew = e + emove;
+      /* do the move */
+      lila_apply_move_pt(pt,m);
+      /*
+	newstruc = vrna_pt_to_db(pt);
+      printf("%s (%6.2f)\n", newstruc, (float)enew/100);
+      */
+      print_str(stdout,pt);
+      printf(" (%6.2f)\n", (float)enew/100);
+      e = enew;
+      len++;
+    }
+    free(newstruc);
+  }
+  else if (local_opt.walktype == 'G'){
+    printf ("performing gradient walk\n");
+    while(len<local_opt.walklen){
+      /* make a random move */
+      m = lila_gradient_move_pt(lilass.sequence,pt);
+      /* compute energy difference for this move */
+      emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+      /* evaluate energy of the new structure */
+      enew = e + emove;
+      /* do the move */
+      lila_apply_move_pt(pt,m);
+      /*
+	newstruc = vrna_pt_to_db(pt);
+      printf("%s (%6.2f)\n", newstruc, (float)enew/100);
+      */
+      print_str(stdout,pt);
+      printf(" (%6.2f)\n", (float)enew/100);
+      e = enew;
+      len++;
+    }
+    
+  }
+  else if (local_opt.walktype == 'A'){
+    printf ("performing adaptive walk\n");
+  }
+  else {
+    printf ("unknown walktype, exiting ...\n");
+    exit(EXIT_FAILURE);
+  }
   //char *str = vrna_pt_to_db(pt);
   //printf(">%s<\n",str);
 
-  /*
-    e = vrna_eval_structure_pt(local_opt.my_seq,pt,P);
-    printf("%s\n", local_opt.my_seq);
-    print_str(stdout,pt);printf(" %6.2f\n",(float)e/100);
-    
+  /*    
     m = get_random_move_pt(pt);
     emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
     lila_apply_move_pt(pt,m);
@@ -117,6 +177,14 @@ process_app_options(int argc, char **argv)
        fprintf(stderr, "argument of --walktype must be A, G or R\n");
        exit(EXIT_FAILURE);
      }
+  }
+
+  /* walk length */
+  if(args_info.walklength_given){
+    if( (local_opt.walklen = args_info.walklength_arg)  < 1) {
+      fprintf(stderr, "argument of --walklength must >= 1\n");
+      exit(EXIT_FAILURE);
+    }
   }
 
   if (args_info.inputs_num){
