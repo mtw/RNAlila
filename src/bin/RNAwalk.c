@@ -124,6 +124,25 @@ main(int argc, char **argv)
   }
   else if (local_opt.walktype == 'A'){
     printf ("performing adaptive walk\n");
+    while(len<local_opt.walklen){
+      /* make a adaptive move */
+      m = lila_adaptive_move_pt(lilass.sequence,pt);
+      /* compute energy difference for this move */
+      emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+      /* evaluate energy of the new structure */
+      enew = e + emove;
+      /* do the move */
+      lila_apply_move_pt(pt,m);
+      /*
+	newstruc = vrna_pt_to_db(pt);
+      printf("%s (%6.2f)\n", newstruc, (float)enew/100);
+      */
+      print_str(stdout,pt);
+      printf(" (%6.2f)\n", (float)enew/100);
+      e = enew;
+      len++;
+    }
+    
   }
   else {
     printf ("unknown walktype, exiting ...\n");
