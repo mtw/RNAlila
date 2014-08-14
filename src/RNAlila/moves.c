@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-02 00:27:58 mtw>
+  Last changed Time-stamp: <2014-08-14 23:19:08 mtw>
 */
 
 #include <stdio.h>
@@ -90,8 +90,25 @@ lila_gradient_move_pt(const char *seq, short int *pt)
 move_str
 lila_adaptive_move_pt(const char *seq, short int *pt)
 {
-  move_str r;
+  move_str r,*mvs=NULL;
+  int i,count;
 
+  count = lila_construct_moves((const char *)seq,pt,1,&mvs);
+  fprintf(stderr," count is %i\n",count);
+  for(i=0;i<count;i++) {
+    if(vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P) < 0){
+      r.left = mvs[i].left;
+      r.right = mvs[i].right;
+      fprintf(stderr,"applying adaptive move operation [l:%i r:%i]\n",
+	      r.left,r.right);
+    }
+    else {
+      r.left = 0;
+      r.right = 0;
+      fprintf (stderr,"RNAlila::moves.c::lila_adaptive_move_pt no adaptive neighbor found, hence moves are [l:%i r: %i]\n", r.left,r.right);
+    }
+  }
+  
   return r;
 }
 
