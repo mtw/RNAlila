@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-14 23:19:08 mtw>
+  Last changed Time-stamp: <2014-08-15 00:31:29 mtw>
 */
 
 #include <stdio.h>
@@ -36,14 +36,6 @@ lila_random_move_pt(const char *seq, short int *pt)
   int count;
   
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
-  /*
-    {
-    for (int i = 0; i<count; i++) {  
-    printf("%d %d\n", mvs[i].left, mvs[i].right);
-    }
-    }
-  */
-  
   r.left  = mvs[0].left;
   r.right = mvs[0].right;
   free(mvs);
@@ -91,24 +83,34 @@ move_str
 lila_adaptive_move_pt(const char *seq, short int *pt)
 {
   move_str r,*mvs=NULL;
-  int i,count;
+  int i,count,have_aw_nb=0;
 
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
-  fprintf(stderr," count is %i\n",count);
   for(i=0;i<count;i++) {
     if(vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P) < 0){
+      /* here we should also accept degenerate moves IFF the target
+	 structure is lexicographically smaller that the source
+	 structure - check that !*/
+	 
       r.left = mvs[i].left;
       r.right = mvs[i].right;
-      fprintf(stderr,"applying adaptive move operation [l:%i r:%i]\n",
-	      r.left,r.right);
+      have_aw_nb=1;
+      /* fprintf(stderr,"applying adaptive move operation [l:%i r:%i]\n",
+	 r.left,r.right); */
+      break;
     }
-    else {
-      r.left = 0;
-      r.right = 0;
-      fprintf (stderr,"RNAlila::moves.c::lila_adaptive_move_pt no adaptive neighbor found, hence moves are [l:%i r: %i]\n", r.left,r.right);
-    }
+    /* check case when we get a degenerate neighbor at the same energy
+       level: call lila_is_minimum() and if this returns 0
+       ensure that it is lexicographically smaller AND ensure
+       that no further back-and-forth moves are possible in follow-up
+       moves. this can eventually turn out to be a bit tricky */
   }
-  
+  if(have_aw_nb == 0){
+    r.left = 0;
+    r.right = 0;
+    /* fprintf (stderr,"no adaptive neighbor found, hence moves are
+       [l:%i r: %i]\n", r.left,r.right);*/
+  }
   return r;
 }
 

@@ -127,6 +127,11 @@ main(int argc, char **argv)
     while(len<local_opt.walklen){
       /* make a adaptive move */
       m = lila_adaptive_move_pt(lilass.sequence,pt);
+      /* no further moves possible */
+      if (m.left == 0 && m.right == 0){ 
+	fprintf(stderr, "no further moves posible after %i moves\n",len);
+	break;
+      }
       /* compute energy difference for this move */
       emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
       /* evaluate energy of the new structure */
