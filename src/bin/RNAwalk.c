@@ -13,6 +13,8 @@
 static void parse_infile(FILE *fp);
 static void RNAwalk_memoryCleanup(void);
 static void process_app_options(int args, char **argv);
+static void ini_AWmin(void);
+static void AWmin(short int *);
 
 /* structures */
 typedef struct _rnawalk {
@@ -40,7 +42,7 @@ main(int argc, char **argv)
   /* process all application-specific options */
   process_app_options(argc,argv);
 
-  /* TODO: get sequence from input file */
+  /* TODO: use ViennaRNA routines to parse input file */
   lila_parse_seq_struc(local_opt.input);
 
   /* set default vRNA model details */
@@ -91,7 +93,7 @@ main(int argc, char **argv)
       lila_apply_move_pt(pt,m);
       /*
 	newstruc = vrna_pt_to_db(pt);
-      printf("%s (%6.2f)\n", newstruc, (float)enew/100);
+	printf("%s (%6.2f)\n", newstruc, (float)enew/100);
       */
       print_str(stdout,pt);
       printf(" (%6.2f)\n", (float)enew/100);
@@ -113,7 +115,7 @@ main(int argc, char **argv)
       lila_apply_move_pt(pt,m);
       /*
 	newstruc = vrna_pt_to_db(pt);
-      printf("%s (%6.2f)\n", newstruc, (float)enew/100);
+	printf("%s (%6.2f)\n", newstruc, (float)enew/100);
       */
       print_str(stdout,pt);
       printf(" (%6.2f)\n", (float)enew/100);
@@ -123,8 +125,24 @@ main(int argc, char **argv)
     
   }
   else if (local_opt.walktype == 'A'){
+    int ismin;
+
+    { /* experiment with new AWmin-related routines */
+      int i=0;
+      move_str *moves=NULL;
+      moves = lila_all_adaptive_moves_pt(lilass.sequence,pt);
+      while(moves[i].left != 0 && moves[i].right != 0){
+	fprintf(stderr,"l:%3i|r:%3i,",moves[i].left,moves[i].right);
+	i++;
+      }
+      fprintf(stderr,"\n");
+      free(moves);
+    }
+    
+    
     printf ("performing adaptive walk\n");
     while(len<local_opt.walklen){
+      char status[] = "x";
       /* make a adaptive move */
       m = lila_adaptive_move_pt(lilass.sequence,pt);
       /* no further moves possible */
@@ -138,12 +156,26 @@ main(int argc, char **argv)
       enew = e + emove;
       /* do the move */
       lila_apply_move_pt(pt,m);
+      
+      {
+      /* validate topological status: transient or minimum?  NOTE:
+	 this is expensive since ALL neighbors are re-generated and
+	 re-evaluated */
+      ismin = lila_is_minimum_pt(lilass.sequence,pt);
+      if (ismin == 1)
+	status[0]='*';
+      else if (ismin == 0)
+	status[0]='T';
+      else
+	status[0]='D';
+      }
+      
       /*
 	newstruc = vrna_pt_to_db(pt);
-      printf("%s (%6.2f)\n", newstruc, (float)enew/100);
+	printf("%s (%6.2f)\n", newstruc, (float)enew/100);
       */
       print_str(stdout,pt);
-      printf(" (%6.2f)\n", (float)enew/100);
+      printf(" (%6.2f) %s\n", (float)enew/100,status);
       e = enew;
       len++;
     }
@@ -153,20 +185,7 @@ main(int argc, char **argv)
     printf ("unknown walktype, exiting ...\n");
     exit(EXIT_FAILURE);
   }
-  //char *str = vrna_pt_to_db(pt);
-  //printf(">%s<\n",str);
-
-  /*    
-    m = get_random_move_pt(pt);
-    emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
-    lila_apply_move_pt(pt,m);
-    //mtw_dump_pt(pt);
-    enew = e + emove;
-    //printf ("performed move l:%4d r:%4d\t Energy +/- %6.2f\n",m.left,m.right,(float)emove/100);
-    print_str(stdout,pt);printf(" %6.2f\n",(float)enew/100);
-    //e = vrna_eval_structure_pt(move_opt.sequence,pt,P);
-    //print_str(stdout,pt);printf(" %6.2f\n",(float)e/100);
-    */
+ 
   RNAwalk_memoryCleanup();
   free(pt);
   free(s0);

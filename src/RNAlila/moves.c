@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-15 00:31:29 mtw>
+  Last changed Time-stamp: <2014-08-16 00:00:42 mtw>
 */
 
 #include <stdio.h>
@@ -76,7 +76,7 @@ lila_gradient_move_pt(const char *seq, short int *pt)
 }
 
 /*
-  get adaptive move operation on a pair table
+  get one adaptive move operation on a pair table
   returns move operations to be applied to pt in order to perform the move
 */
 move_str
@@ -112,6 +112,29 @@ lila_adaptive_move_pt(const char *seq, short int *pt)
        [l:%i r: %i]\n", r.left,r.right);*/
   }
   return r;
+}
+
+/*
+  get all adaptive move operations on a pair table. Returns an array
+  of individual move operations to be applied to pt
+*/
+move_str* 
+lila_all_adaptive_moves_pt(const char *seq, short int *pt)
+{
+  move_str r,*mvs=NULL, *allmvs=NULL;
+  int i,count,j=0;
+  allmvs;
+  
+  count = lila_construct_moves((const char *)seq,pt,1,&mvs);
+  allmvs = (move_str*)calloc(count,sizeof(move_str));
+
+  for(i=0;i<count;i++){
+    if(vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P) < 0){
+      allmvs[j] = mvs[i];
+      j++;
+    }
+  }
+  return allmvs;
 }
 
 
@@ -258,3 +281,27 @@ lila_RNAlexicographicalOrder(const void *a, const void *b)
   return comp;
 }
 
+/*
+  check whether a given structure (provided as pairtable) is a local
+  minimum of the energy landscape. return 1 if it is a minimum, 0 if
+  it is not a minimum and -1 if it is a degenerate minimum (i.e. there
+  are neighbour structures at the same energy level).
+ */
+int
+lila_is_minimum_pt(const char *seq, short int *pt)
+{
+  move_str r,*mvs=NULL;
+  int i,count,emove;
+  
+  count = lila_construct_moves((const char *)seq,pt,1,&mvs);
+  for(i=0;i<count;i++) {
+    emove = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
+    if (emove < 0){ /* lower energy neighbor found */
+      return 0;
+    }
+    if (emove == 0) { /*degenerate neighbor found */
+      return -1;
+    }
+  }
+  return 1;
+}
