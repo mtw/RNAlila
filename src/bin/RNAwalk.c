@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <assert.h>
 #include <math.h>
+#include "glib.h"
 #include "RNAlila/lila.h"
 #include "RNAlila/moves.h"
 #include "RNAwalk_cmdl.h"
@@ -20,11 +22,14 @@ static void AWmin(short int *);
 typedef struct _rnawalk {
   FILE *input;            /* file pointer to input */
   char *basename;         /* base name of input */
-  char walktype;          /* walk type (A|G|R) */
-  int walklen;            /* walk length */
+  char  walktype;         /* walk type (A|G|R) */
+  int   walklen;          /* walk length */
+  bool  awmin;            /* flag for awmin */
 } local_optT;
 
+/* variables / strucs */
 static local_optT local_opt;
+GHashTable *S, *M;
 struct RNAwalk_args_info args_info;
 
 int
@@ -126,68 +131,61 @@ main(int argc, char **argv)
   }
   else if (local_opt.walktype == 'A'){
     int ismin;
-
-    { /* experiment with new AWmin-related routines */
-      int i=0;
-      move_str *moves=NULL;
-      moves = lila_all_adaptive_moves_pt(lilass.sequence,pt);
-      while(moves[i].left != 0 && moves[i].right != 0){
-	fprintf(stderr,"l:%3i|r:%3i,",moves[i].left,moves[i].right);
-	i++;
-      }
-      fprintf(stderr,"\n");
-      free(moves);
+    
+    if(local_opt.awmin==true) {
+      printf ("performing AWmin\n");
+      ini_AWmin();
+      AWmin(pt);
     }
-    
-    
-    printf ("performing adaptive walk\n");
-    while(len<local_opt.walklen){
-      char status[] = "x";
-      /* make a adaptive move */
-      m = lila_adaptive_move_pt(lilass.sequence,pt);
-      /* no further moves possible */
-      if (m.left == 0 && m.right == 0){ 
-	fprintf(stderr, "no further moves posible after %i moves\n",len);
-	break;
+    else{
+      printf ("performing adaptive walk\n");
+      while(len<local_opt.walklen){
+	char status[] = "x";
+	/* make a adaptive move */
+	m = lila_adaptive_move_pt(lilass.sequence,pt);
+	/* no further moves possible */
+	if (m.left == 0 && m.right == 0){ 
+	  fprintf(stderr, "no further moves posible after %i moves\n",len);
+	  break;
+	}
+	/* compute energy difference for this move */
+	emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+	/* evaluate energy of the new structure */
+	enew = e + emove;
+	/* do the move */
+	lila_apply_move_pt(pt,m);
+	
+	{
+	  /* validate topological status: transient or minimum?  NOTE:
+	     this is expensive since ALL neighbors are re-generated and
+	     re-evaluated */
+	  ismin = lila_is_minimum_pt(lilass.sequence,pt);
+	  if (ismin == 1)
+	    status[0]='*';
+	  else if (ismin == 0)
+	    status[0]='T';
+	  else
+	    status[0]='D';
+	}
+	
+	/*
+	  newstruc = vrna_pt_to_db(pt);
+	  printf("%s (%6.2f)\n", newstruc, (float)enew/100);
+	*/
+	print_str(stdout,pt);
+	printf(" (%6.2f) %s\n", (float)enew/100,status);
+	e = enew;
+	len++;
       }
-      /* compute energy difference for this move */
-      emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
-      /* evaluate energy of the new structure */
-      enew = e + emove;
-      /* do the move */
-      lila_apply_move_pt(pt,m);
-      
-      {
-      /* validate topological status: transient or minimum?  NOTE:
-	 this is expensive since ALL neighbors are re-generated and
-	 re-evaluated */
-      ismin = lila_is_minimum_pt(lilass.sequence,pt);
-      if (ismin == 1)
-	status[0]='*';
-      else if (ismin == 0)
-	status[0]='T';
-      else
-	status[0]='D';
-      }
-      
-      /*
-	newstruc = vrna_pt_to_db(pt);
-	printf("%s (%6.2f)\n", newstruc, (float)enew/100);
-      */
-      print_str(stdout,pt);
-      printf(" (%6.2f) %s\n", (float)enew/100,status);
-      e = enew;
-      len++;
-    }
-    
+    }    
   }
   else {
     printf ("unknown walktype, exiting ...\n");
     exit(EXIT_FAILURE);
   }
- 
-  RNAwalk_memoryCleanup();
-  free(pt);
+  
+    RNAwalk_memoryCleanup();
+    free(pt);
   free(s0);
   free(s1);
 
@@ -196,11 +194,43 @@ main(int argc, char **argv)
 
 /**/
 static void
+ini_AWmin(void)
+{
+  /* initialize S as glib hash. S is a key==value type hash containing
+     just secondary structures (dot bracket strings)*/
+  S = g_hash_table_new(g_str_hash,g_str_equal);
+  /* initialize list of local minima M */
+  M = g_hash_table_new(g_str_hash,g_str_equal);  
+}
+
+/**/
+static void
+AWmin(short int *pt)
+{
+  int i=0;
+  move_str *moves=NULL;
+  /* initialize neighbor list N */
+  GHashTable *N =  g_hash_table_new(g_str_hash,g_str_equal);
+  
+  moves = lila_all_adaptive_moves_pt(lilass.sequence,pt);
+  while(moves[i].left != 0 && moves[i].right != 0){
+    fprintf(stderr,"l:%3i|r:%3i,",moves[i].left,moves[i].right);
+    i++;
+  }
+  fprintf(stderr,"\n");
+  free(moves);
+}
+
+
+/**/
+static void
 process_app_options(int argc, char **argv)
 {
   /* initialize local options */
   local_opt.input      = NULL;
   local_opt.walktype   = 'G';
+  local_opt.walklen    = 100;
+  local_opt.awmin      = false;
 
   /* parse command line, overweite local options */
   if (RNAwalk_cmdline_parser (argc, argv, &args_info) != 0){
@@ -230,6 +260,14 @@ process_app_options(int argc, char **argv)
     }
   }
 
+  /* compute awmin */
+  if(args_info.awmin_given){
+    if(args_info.awmin_given){
+      local_opt.awmin = true;
+    }
+  }
+
+  /* input file */
   if (args_info.inputs_num){
     char *infile=NULL;
     infile = strdup(args_info.inputs[0]);
