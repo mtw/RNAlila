@@ -19,8 +19,17 @@ option "walklength" l
 of steps is reached, e.g. in case a local minimum has been reached in \
 an adaptive or gradient walk, the walk will terminate.\n"
 int
-default="100000" 
+default="100" 
 optional
+
+section "Options specific to adaptive walks"
+
+option "awmin" - 
+"Compute all minima that are reachable from a specific start structure \
+via (all possible) adaptive walks"
+flag
+off
+
 
 section "ViennaRNA-specific options"
 sectiondesc="The options below directly influence the folding and energy
