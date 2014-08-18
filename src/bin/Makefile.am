@@ -1,6 +1,6 @@
 bin_PROGRAMS = RNAwalk
 
-LDADD = $(top_srcdir)/src/RNAlila/libRNAlila.a ${ViennaRNA_LIBS}
+LDADD = $(top_srcdir)/src/RNAlila/libRNAlila.a ${ViennaRNA_LIBS} ${Glib2_LIBS}
 
 AM_CFLAGS =  ${Glib2_CFLAGS} ${GSL_CFLAGS} ${ViennaRNA_CFLAGS}
 AM_CPPFLAGS = -I$(top_srcdir)/src  ${Glib2_LIBS} -I${includedir} -I.
