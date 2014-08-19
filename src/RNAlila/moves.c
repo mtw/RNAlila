@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-16 00:00:42 mtw>
+  Last changed Time-stamp: <2014-08-20 00:16:31 mtw>
 */
 
 #include <stdio.h>
@@ -116,14 +116,14 @@ lila_adaptive_move_pt(const char *seq, short int *pt)
 
 /*
   get all adaptive move operations on a pair table. Returns an array
-  of individual move operations to be applied to pt
+  of individual move operations to be applied to pt or NULL if no
+  moves are possible
 */
 move_str* 
 lila_all_adaptive_moves_pt(const char *seq, short int *pt)
 {
   move_str r,*mvs=NULL, *allmvs=NULL;
   int i,count,j=0;
-  allmvs;
   
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   allmvs = (move_str*)calloc(count,sizeof(move_str));
@@ -134,9 +134,11 @@ lila_all_adaptive_moves_pt(const char *seq, short int *pt)
       j++;
     }
   }
-  return allmvs;
+  if(j>0)
+    return allmvs;
+  else
+    return NULL;
 }
-
 
 
 /*
@@ -257,7 +259,7 @@ lila_dump_pt(const short *pairtable)
 {
   int i;
   printf("> ");
-  for (i=0;i<*pairtable;i++){
+  for (i=0;i<(*pairtable)+1;i++){
     printf("%i ",*(pairtable+i));
   }
   printf("\n");
@@ -304,4 +306,30 @@ lila_is_minimum_pt(const char *seq, short int *pt)
     }
   }
   return 1;
+}
+
+/*
+  convert pair table to dot bracket notation
+*/
+char *
+lila_db_from_pt(short int *pt)
+{
+  int i;
+  char *db=NULL;
+  //fprintf(stderr,"[[lila_db_from_pt]]:\n");
+  //lila_dump_pt(pt);
+  if(pt){
+    db = (char*)calloc(pt[0]+1,sizeof(char));
+    for(i=1;i<=pt[0];i++){
+      if(*(pt+i)==0)
+	db[i-1] = '.';
+      else if (*(pt+i)<i)
+	db[i-1] = ')';
+      else
+	db[i-1] = '(';
+    }
+    db[i-1] = '\0';
+  }
+  //fprintf(stderr,"%s\n",db);
+  return db;
 }

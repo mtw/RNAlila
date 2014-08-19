@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-08-07 14:15:25 mtw>
+  Last changed Time-stamp: <2014-08-19 22:30:10 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -54,5 +54,6 @@ void lila_set_vcd_options(const unsigned int temp_given,
 			  const double betaScale_arg,
 			  const int dangles_arg,
 			  const int noLP_flag);
+char *lila_db_from_pt(short int*);
 
 #endif

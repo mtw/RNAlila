@@ -17,6 +17,7 @@ static void RNAwalk_memoryCleanup(void);
 static void process_app_options(int args, char **argv);
 static void ini_AWmin(void);
 static void AWmin(short int *);
+static void AWmin_memoryCleanup(void);
 
 /* structures */
 typedef struct _rnawalk {
@@ -133,9 +134,16 @@ main(int argc, char **argv)
     int ismin;
     
     if(local_opt.awmin==true) {
+      GHashTableIter iter;
+      gpointer key, value;
       printf ("performing AWmin\n");
       ini_AWmin();
       AWmin(pt);
+      fprintf(stdout,"Minima:\n");
+      g_hash_table_iter_init (&iter, M);
+      while (g_hash_table_iter_next (&iter, &key, &value))
+	fprintf(stderr,"%s\n",(char*)key);
+      AWmin_memoryCleanup();
     }
     else{
       printf ("performing adaptive walk\n");
@@ -197,30 +205,68 @@ static void
 ini_AWmin(void)
 {
   /* initialize S as glib hash. S is a key==value type hash containing
-     just secondary structures (dot bracket strings)*/
+     just secondary structures in dot bracket notation */
   S = g_hash_table_new(g_str_hash,g_str_equal);
   /* initialize list of local minima M */
   M = g_hash_table_new(g_str_hash,g_str_equal);  
 }
 
-/**/
+/*
+  Compute all minima reachable from a single structure via adaptive
+  walks via recursive depth first search.
+*/
 static void
 AWmin(short int *pt)
 {
-  int i=0;
+  int i=0,size;
   move_str *moves=NULL;
-  /* initialize neighbor list N */
-  GHashTable *N =  g_hash_table_new(g_str_hash,g_str_equal);
+  char *struc,*v;
+
   
+  struc = lila_db_from_pt(pt);
+  fprintf(stderr,"inserting %s\t",struc);
+  g_hash_table_add(S,struc); /* key == value */
+  size = g_hash_table_size(S);
+  fprintf(stderr,"hashsize=%i\n",size);
+
+  /* get move operations for all AW neighbors */
   moves = lila_all_adaptive_moves_pt(lilass.sequence,pt);
-  while(moves[i].left != 0 && moves[i].right != 0){
-    fprintf(stderr,"l:%3i|r:%3i,",moves[i].left,moves[i].right);
-    i++;
+  if(!moves){ /* no adaptive walks neighbors found */
+    if (lila_is_minimum_pt(lilass.sequence,pt) == 1){
+      /* add struc to the list of minima */
+      g_hash_table_add(M,struc);
+      // TODO: handle degenerate minima 
+    }
+    else{
+      fprintf(stderr, "ERROR: no AW neighbors found, but structure isn't a minimum either\n");
+      fprintf(stderr, "This shouldn't happen. Exiting ...\n");
+      fprintf(stderr, "%s\n",struc);
+    }
   }
-  fprintf(stderr,"\n");
-  free(moves);
+  else{
+    while(moves[i].left != 0 && moves[i].right != 0){
+      fprintf(stderr,"l:%3i|r:%3i,",moves[i].left,moves[i].right);
+      i++;
+      lila_apply_move_pt(pt,moves[i]);
+      v = lila_db_from_pt(pt);
+      if(g_hash_table_lookup(S,v))
+	fprintf(stderr,"%s already processed\n",v);
+      else
+	AWmin(pt);
+      free(v);
+    }
+    fprintf(stderr,"\n");
+    free(moves);
+  }
 }
 
+/**/
+static void
+AWmin_memoryCleanup(void)
+{
+  g_hash_table_destroy(S);
+  g_hash_table_destroy(M);
+}
 
 /**/
 static void
