@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-08-07 14:15:18 mtw>
+  Last changed Time-stamp: <2014-08-21 13:54:33 mtw>
 */
 
 #include <stdio.h>
@@ -66,12 +66,12 @@ lila_set_vcd_options(const unsigned int temp_given,
   /* betaScale */
   if(betaScale_given){
     vcd.betaScale = betaScale_arg;
-    md.betaScale = vcd.betaScale;
+    vrna_md_set_betascale(&md,vcd.betaScale);
   }
   /* noLP */
   if(noLP_given){
     vcd.noLP = noLP_flag; /* 0 or 1 */
-    md.noLP = vcd.noLP;
+    vrna_md_set_nolp(&md,vcd.noLP);
   }
 }
 
