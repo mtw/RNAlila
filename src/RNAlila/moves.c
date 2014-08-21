@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-20 00:16:31 mtw>
+  Last changed Time-stamp: <2014-08-21 23:16:35 mtw>
 */
 
 #include <stdio.h>
@@ -120,7 +120,7 @@ lila_adaptive_move_pt(const char *seq, short int *pt)
   moves are possible
 */
 move_str* 
-lila_all_adaptive_moves_pt(const char *seq, short int *pt)
+lila_all_adaptive_moves_pt(const char *seq, short int *pt, int *ct)
 {
   move_str r,*mvs=NULL, *allmvs=NULL;
   int i,count,j=0;
@@ -134,6 +134,7 @@ lila_all_adaptive_moves_pt(const char *seq, short int *pt)
       j++;
     }
   }
+  *ct = j;
   if(j>0)
     return allmvs;
   else

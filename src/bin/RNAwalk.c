@@ -218,22 +218,35 @@ ini_AWmin(void)
 static void
 AWmin(short int *pt)
 {
-  int i=0,size;
+  int i=0,size,count;
   move_str *moves=NULL;
-  char *struc,*v;
+  char *struc;
+  short int *ptbak=NULL;
 
-  
+  ptbak = vrna_pt_copy(pt); /* FREE THIS !!! */
+  fprintf(stderr,"\n[[AWmin]]\n");
   struc = lila_db_from_pt(pt);
-  fprintf(stderr,"inserting %s\t",struc);
+  if(struc == NULL)
+    fprintf(stderr,"struc is a NULl pointer; this shouldn't happen\n");
+  fprintf(stderr,"  %s INSERTED ",struc);
   g_hash_table_add(S,struc); /* key == value */
   size = g_hash_table_size(S);
-  fprintf(stderr,"hashsize=%i\n",size);
+  fprintf(stderr,"[hashsize=%i]\n",size);
 
   /* get move operations for all AW neighbors */
-  moves = lila_all_adaptive_moves_pt(lilass.sequence,pt);
+  moves = lila_all_adaptive_moves_pt(lilass.sequence,pt,&count);
+  {/* count number of adaptive move operations */
+    int k;
+    fprintf(stderr,"%i adaptive move operations possible\n",count);
+    for (k=0;k<count;k++){
+      fprintf(stderr," move l:%3i|r:%3i\n",moves[k].left,moves[k].right);
+    }   
+  }
+ 
   if(!moves){ /* no adaptive walks neighbors found */
     if (lila_is_minimum_pt(lilass.sequence,pt) == 1){
       /* add struc to the list of minima */
+      fprintf(stderr,"M %s ADDED TO MINIMA\n",struc);
       g_hash_table_add(M,struc);
       // TODO: handle degenerate minima 
     }
@@ -244,20 +257,32 @@ AWmin(short int *pt)
     }
   }
   else{
-    while(moves[i].left != 0 && moves[i].right != 0){
-      fprintf(stderr,"l:%3i|r:%3i,",moves[i].left,moves[i].right);
-      i++;
+    for(i=0;i<count;i++){ /* loop over all move operations */
+      char *v=NULL;
+      v = lila_db_from_pt(pt);
+      fprintf(stderr,"S %s | move l:%3i|r:%3i\n",v,moves[i].left,moves[i].right);
       lila_apply_move_pt(pt,moves[i]);
       v = lila_db_from_pt(pt);
-      if(g_hash_table_lookup(S,v))
-	fprintf(stderr,"%s already processed\n",v);
-      else
+      fprintf(stderr,"T %s\n",v);
+      if(g_hash_table_lookup(S,v)){
+	fprintf(stderr,"  %s already processed\n",v);
+      }
+      else{
+	fprintf(stderr,"calling AWmin()\n");
 	AWmin(pt);
-      free(v);
+      }
+
+      /* reset to the version of pt this function was called with */
+      // free(pt);
+      pt = ptbak; // TODO check what neeed to be freed here !!!
+      
+      fprintf(stderr,"RETURNing struc is %s\n",v);
+      // free(v);
     }
     fprintf(stderr,"\n");
     free(moves);
   }
+  //  free(ptbak);
 }
 
 /**/
