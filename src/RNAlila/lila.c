@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-08-21 13:54:33 mtw>
+  Last changed Time-stamp: <2014-08-27 22:48:07 mtw>
 */
 
 #include <stdio.h>
@@ -20,7 +20,6 @@ lila_ini_vcd_options(void)
   vcd.noLP                = VRNA_MODEL_DEFAULT_NO_LP;
 }
 
-
 /* ==== */
 void
 lila_ini_vRNA (const char *seq)
@@ -30,6 +29,17 @@ lila_ini_vRNA (const char *seq)
   s0 = vrna_seq_encode_simple(seq,&(P->model_details));
   s1 = vrna_seq_encode(seq,&(P->model_details));
 }
+
+/* === */
+void
+lila_vRNA_cleanup(void)
+{
+  free(s0);
+  free(s1);
+  free(P);
+
+}
+
 
 /* ==== */
 /*  set temperature, dangles, betaScale, noLP as vRNA modelDetails*/

@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-08-19 22:30:10 mtw>
+  Last changed Time-stamp: <2014-08-27 22:44:57 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -45,6 +45,7 @@ lilassT lilass;          /* start sequence && start structure */
 char *lila_basename(char *);
 void lila_parse_seq_struc(FILE *fp);
 void lila_ini_vRNA(const char *seq);
+void lila_vRNA_cleanup(void);
 void lila_ini_vcd_options(void);
 void lila_set_vcd_options(const unsigned int temp_given,
 			  const unsigned int betaScale_given,

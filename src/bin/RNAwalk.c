@@ -143,8 +143,13 @@ main(int argc, char **argv)
       fprintf(stdout,"Minima:\n");
       L = g_hash_table_get_keys(M);
       g_list_foreach(L, dump_items, "struc %s\n");
-      g_list_free_full(L,free_key);
-      AWmin_memoryCleanup();
+      fprintf(stderr,"detroying hash M\n");
+      g_hash_table_destroy(M);
+      fprintf(stderr,"destroying hash S\n");
+      g_hash_table_destroy(S);
+      g_list_free(L);
+      //AWmin_memoryCleanup();
+      //free(L);
     }
     else{
       printf ("performing adaptive walk\n");
@@ -193,22 +198,25 @@ main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
   
-    RNAwalk_memoryCleanup();
-    free(pt);
-  free(s0);
-  free(s1);
-
+  RNAwalk_memoryCleanup();
+  
+  /* free ViennaRNA data */
+  lila_vRNA_cleanup();
+  
+  free(pt);
+  
   return 0;
 }
 
 static void
 dump_items(gpointer data,  gpointer user_data) {
-  printf(user_data, (gchar*)data);
+  fprintf(stdout,user_data, (gchar*)data);
 }
 
 static void
 free_key(gpointer data){
-  free(data);
+  //fprintf(stderr, "[[free_key]] freeing %s\n", data);
+   free(data);
 }
 
 
@@ -234,9 +242,10 @@ AWmin(short int *pt)
   move_str *moves=NULL;
   char *struc;
   short int *ptbak=NULL;
+  static int counter=0;
 
-  ptbak = vrna_pt_copy(pt); /* FREE THIS !!! */
-  fprintf(stderr,"\n[[AWmin]]\n");
+  //ptbak = vrna_pt_copy(pt); /* FREE THIS !!! */
+  fprintf(stderr,"\n[[AWmin]] [[%i]]\n",counter++);
   struc = lila_db_from_pt(pt);
   if(struc == NULL)
     fprintf(stderr,"struc is a NULl pointer; this shouldn't happen\n");
@@ -251,7 +260,7 @@ AWmin(short int *pt)
     int k;
     fprintf(stderr,"%i adaptive move operations possible\n",count);
     for (k=0;k<count;k++){
-      fprintf(stderr," move l:%3i|r:%3i\n",moves[k].left,moves[k].right);
+      fprintf(stderr," move #%i l:%3i|r:%3i\n",k,moves[k].left,moves[k].right);
     }   
   }
  
@@ -269,10 +278,12 @@ AWmin(short int *pt)
     }
   }
   else{
+   
     for(i=0;i<count;i++){ /* loop over all move operations */
+      ptbak = vrna_pt_copy(pt);
       char *v;
       v = lila_db_from_pt(pt);
-      fprintf(stderr,"S %s | move l:%3i|r:%3i\n",v,moves[i].left,moves[i].right);
+      fprintf(stderr,"S %s | move #%i l:%3i|r:%3i\n",v,i,moves[i].left,moves[i].right);
       free(v);
       lila_apply_move_pt(pt,moves[i]);
       v = lila_db_from_pt(pt);
@@ -297,6 +308,7 @@ AWmin(short int *pt)
       v = lila_db_from_pt(pt);
       fprintf(stderr, "B %s [after resetting]\n",v);
       free(v);
+      
     }
     fprintf(stderr,"\n");
   }
@@ -376,6 +388,7 @@ static void
 RNAwalk_memoryCleanup (void)
 {
   RNAwalk_cmdline_parser_free(&args_info);
+  fclose(local_opt.input);
   free(lilass.sequence);
   free(lilass.structure);
 }
