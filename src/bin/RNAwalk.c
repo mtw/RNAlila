@@ -18,6 +18,8 @@ static void process_app_options(int args, char **argv);
 static void ini_AWmin(void);
 static void AWmin(short int *);
 static void AWmin_memoryCleanup(void);
+static void dump_items(gpointer data,  gpointer user_data);
+static void free_key(gpointer data);
 
 /* structures */
 typedef struct _rnawalk {
@@ -70,10 +72,10 @@ main(int argc, char **argv)
   printf ("%s\n",lilass.sequence);
   printf ("MFE is:\n");
   { // compute mfe
-    char *ss=(char*)calloc(strlen((lilass.sequence)+1),sizeof(char));
+    char *ss=(char*)calloc((strlen(lilass.sequence)+1),sizeof(char));
     mfe = vrna_fold(vc,ss);
-    vrna_free_fold_compound(vc);
-    //   ss = vrna_pt_to_db(pt);
+    vrna_free_fold_compound(vc); // this should be done here !!!
+       //   ss = vrna_pt_to_db(pt);
     printf ("%s (%6.2f)\n",ss,mfe);
     free(ss);
   }
@@ -134,15 +136,14 @@ main(int argc, char **argv)
     int ismin;
     
     if(local_opt.awmin==true) {
-      GHashTableIter iter;
-      gpointer key, value;
+      GList *L=NULL;
       printf ("performing AWmin\n");
       ini_AWmin();
       AWmin(pt);
       fprintf(stdout,"Minima:\n");
-      g_hash_table_iter_init (&iter, M);
-      while (g_hash_table_iter_next (&iter, &key, &value))
-	fprintf(stderr,"%s\n",(char*)key);
+      L = g_hash_table_get_keys(M);
+      g_list_foreach(L, dump_items, "struc %s\n");
+      g_list_free_full(L,free_key);
       AWmin_memoryCleanup();
     }
     else{
@@ -200,15 +201,26 @@ main(int argc, char **argv)
   return 0;
 }
 
+static void
+dump_items(gpointer data,  gpointer user_data) {
+  printf(user_data, (gchar*)data);
+}
+
+static void
+free_key(gpointer data){
+  free(data);
+}
+
+
 /**/
 static void
 ini_AWmin(void)
 {
   /* initialize S as glib hash. S is a key==value type hash containing
      just secondary structures in dot bracket notation */
-  S = g_hash_table_new(g_str_hash,g_str_equal);
+  S = g_hash_table_new_full(g_str_hash,g_str_equal,free_key,NULL);
   /* initialize list of local minima M */
-  M = g_hash_table_new(g_str_hash,g_str_equal);  
+  M = g_hash_table_new_full(g_str_hash,g_str_equal,free_key,NULL);  
 }
 
 /*
@@ -243,7 +255,7 @@ AWmin(short int *pt)
     }   
   }
  
-  if(!moves){ /* no adaptive walks neighbors found */
+  if(count == 0){ /* no adaptive walks neighbors found */
     if (lila_is_minimum_pt(lilass.sequence,pt) == 1){
       /* add struc to the list of minima */
       fprintf(stderr,"M %s ADDED TO MINIMA\n",struc);
@@ -258,39 +270,48 @@ AWmin(short int *pt)
   }
   else{
     for(i=0;i<count;i++){ /* loop over all move operations */
-      char *v=NULL;
+      char *v;
       v = lila_db_from_pt(pt);
       fprintf(stderr,"S %s | move l:%3i|r:%3i\n",v,moves[i].left,moves[i].right);
+      free(v);
       lila_apply_move_pt(pt,moves[i]);
       v = lila_db_from_pt(pt);
       fprintf(stderr,"T %s\n",v);
       if(g_hash_table_lookup(S,v)){
 	fprintf(stderr,"  %s already processed\n",v);
+	free(v);
       }
       else{
+	free(v);
 	fprintf(stderr,"calling AWmin()\n");
 	AWmin(pt);
       }
 
+      fprintf(stderr, "RETURNING\n");
       /* reset to the version of pt this function was called with */
       // free(pt);
+      v = lila_db_from_pt(pt);
+      fprintf(stderr, "B %s [before resetting]\n",v);
+      free(v);
       pt = ptbak; // TODO check what neeed to be freed here !!!
-      
-      fprintf(stderr,"RETURNing struc is %s\n",v);
-      // free(v);
+      v = lila_db_from_pt(pt);
+      fprintf(stderr, "B %s [after resetting]\n",v);
+      free(v);
     }
     fprintf(stderr,"\n");
-    free(moves);
   }
-  //  free(ptbak);
+  fprintf(stderr,"END OF AWMIN\n");
+  free(ptbak);
+  //free(struc);
+  if(moves != NULL) free(moves);
 }
 
 /**/
 static void
 AWmin_memoryCleanup(void)
 {
-  g_hash_table_destroy(S);
-  g_hash_table_destroy(M);
+  // g_hash_table_destroy(S);
+  //g_hash_table_destroy(M);
 }
 
 /**/

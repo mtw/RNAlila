@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-21 23:16:35 mtw>
+  Last changed Time-stamp: <2014-08-27 18:38:16 mtw>
 */
 
 #include <stdio.h>
@@ -123,22 +123,59 @@ move_str*
 lila_all_adaptive_moves_pt(const char *seq, short int *pt, int *ct)
 {
   move_str r,*mvs=NULL, *allmvs=NULL;
-  int i,count,j=0;
+  int i,count,e,j=0;
   
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   allmvs = (move_str*)calloc(count,sizeof(move_str));
 
+  { /* begin paranoid energy evaluation  REMOVE ME */
+     e = vrna_eval_structure_pt(lilass.sequence,pt,P);
+  } /* end paranoid energy evaluation */
+  
   for(i=0;i<count;i++){
     if(vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P) < 0){
       allmvs[j] = mvs[i];
       j++;
+      
+      { /* begin paranoid energy evaluation REMOVE ME */
+	int emove,enew,e2;
+	short int *ptbak=NULL;
+	move_str m;
+	m.left  = mvs[i].left;
+	m.right = mvs[i].right;
+	/* copy pair table, operate on this copy */
+	ptbak = vrna_pt_copy(pt);
+	/* compute energy difference for this move */
+	emove = vrna_eval_move_pt(ptbak,s0,s1,m.left,m.right,P);
+	/* evaluate energy of the new structure */
+	enew = e + emove;
+	/* do the move */
+	lila_apply_move_pt(ptbak,m);
+	/* eval energy of the new structure */
+	e2 =  vrna_eval_structure_pt(seq,ptbak,P);
+
+	if (e2 != enew){
+	  fprintf(stderr, "energy evaluation against vrna_eval_structure_pt() mismatch... HAVE %6.2f != %6.2f (SHOULD BE)\n",(float)enew/100, (float)e2/100);
+	  
+	  fprintf(stderr,"INPUT pt:\n");
+	  lila_dump_pt(pt);
+	  fprintf(stderr, "AW NEIGHBOUR pt:\n");
+	  lila_dump_pt(ptbak);
+	}
+	  
+      } /* end paranoid energy evaluation */
+      
+      
     }
   }
   *ct = j;
+  free(mvs);
   if(j>0)
     return allmvs;
-  else
+  else{
+    free(allmvs);
     return NULL;
+  }
 }
 
 
@@ -294,18 +331,21 @@ int
 lila_is_minimum_pt(const char *seq, short int *pt)
 {
   move_str r,*mvs=NULL;
-  int i,count,emove;
+  int rv,i,count,emove;
   
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   for(i=0;i<count;i++) {
     emove = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
     if (emove < 0){ /* lower energy neighbor found */
+      free(mvs);
       return 0;
     }
     if (emove == 0) { /*degenerate neighbor found */
+      free(mvs);
       return -1;
     }
   }
+  free(mvs);
   return 1;
 }
 
