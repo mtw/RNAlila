@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-27 18:38:16 mtw>
+  Last changed Time-stamp: <2014-08-28 12:14:08 mtw>
 */
 
 #include <stdio.h>
@@ -162,7 +162,7 @@ lila_all_adaptive_moves_pt(const char *seq, short int *pt, int *ct)
 	  fprintf(stderr, "AW NEIGHBOUR pt:\n");
 	  lila_dump_pt(ptbak);
 	}
-	  
+	free(ptbak);
       } /* end paranoid energy evaluation */
       
       
