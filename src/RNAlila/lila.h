@@ -1,12 +1,13 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-08-27 22:44:57 mtw>
+  Last changed Time-stamp: <2014-08-29 13:04:54 mtw>
 */
 
 #ifndef __RNA_LILA_H__
 #define __RNA_LILA_H__
 
 #include "config.h"
+#include <glib.h>
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/fold.h"
@@ -56,5 +57,6 @@ void lila_set_vcd_options(const unsigned int temp_given,
 			  const int dangles_arg,
 			  const int noLP_flag);
 char *lila_db_from_pt(short int*);
+int   lila_cmp_db(void *,void *);
 
 #endif

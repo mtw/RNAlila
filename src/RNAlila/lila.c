@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-08-27 22:48:07 mtw>
+  Last changed Time-stamp: <2014-08-29 13:05:50 mtw>
 */
 
 #include <stdio.h>
@@ -37,7 +37,7 @@ lila_vRNA_cleanup(void)
   free(s0);
   free(s1);
   free(P);
-
+  vrna_free_fold_compound(vc);
 }
 
 
@@ -126,4 +126,9 @@ lila_basename(char *arg)
   return s;
 }
 
+/**/
+int lila_cmp_db(void *a, void *b)
+{
+  return strcmp(a,b);	
+}
 

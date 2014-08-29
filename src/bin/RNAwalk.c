@@ -1,3 +1,8 @@
+/*
+  RNAwalk.c
+  Last changed Time-stamp: <2014-08-29 11:55:02 mtw>
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -5,13 +10,10 @@
 #include <time.h>
 #include <assert.h>
 #include <math.h>
-#include "glib.h"
 #include "RNAlila/lila.h"
 #include "RNAlila/moves.h"
 #include "RNAwalk_cmdl.h"
 
-
-/* functions */
 static void parse_infile(FILE *fp);
 static void RNAwalk_memoryCleanup(void);
 static void process_app_options(int args, char **argv);
@@ -22,7 +24,6 @@ static void dump_items(gpointer data,  gpointer user_data);
 static void free_key(gpointer data);
 static void walk(void);
 
-/* structures */
 typedef struct _rnawalk {
   FILE *input;            /* file pointer to input */
   char *basename;         /* base name of input */
@@ -31,9 +32,8 @@ typedef struct _rnawalk {
   bool  awmin;            /* flag for awmin */
 } local_optT;
 
-/* variables / strucs */
-static local_optT local_opt;
 GHashTable *S, *M;
+static local_optT local_opt;
 struct RNAwalk_args_info args_info;
 
 int
@@ -82,8 +82,8 @@ main(int argc, char **argv)
   pt = vrna_pt_get(lilass.structure);
   e = vrna_eval_structure_pt(lilass.sequence,pt,P);
   
-  /* printf ("Start structure:\n"); */
-  printf ("%s (%6.2f)\n",lilass.structure, (float)e/100);
+  /* print Start structure */
+  printf ("%s (%6.2f) S\n",lilass.structure, (float)e/100);
   
   walk();
 
@@ -99,11 +99,11 @@ main(int argc, char **argv)
   
 
 static void
-walk (void){
+walk (void)
+{
   int e,enew,emove;
   int len = 0;
   move_str m;
-  char *newstruc=NULL;
   
   if(local_opt.walktype == 'R'){
     /* printf ("performing random walk\n");*/
@@ -116,16 +116,11 @@ walk (void){
       enew = e + emove;
       /* do the move */
       lila_apply_move_pt(pt,m);
-      /*
-	newstruc = vrna_pt_to_db(pt);
-	printf("%s (%6.2f)\n", newstruc, (float)enew/100);
-      */
       print_str(stdout,pt);
       printf(" (%6.2f)\n", (float)enew/100);
       e = enew;
       len++;
     }
-    free(newstruc);
   }
   else if (local_opt.walktype == 'G'){
     /* printf ("performing gradient walk\n");*/
@@ -138,16 +133,11 @@ walk (void){
       enew = e + emove;
       /* do the move */
       lila_apply_move_pt(pt,m);
-      /*
-	newstruc = vrna_pt_to_db(pt);
-	printf("%s (%6.2f)\n", newstruc, (float)enew/100);
-      */
       print_str(stdout,pt);
       printf(" (%6.2f)\n", (float)enew/100);
       e = enew;
       len++;
     }
-    
   }
   else if (local_opt.walktype == 'A'){
     int ismin;
@@ -166,7 +156,6 @@ walk (void){
       g_hash_table_destroy(S);
       g_list_free(L);
       //AWmin_memoryCleanup();
-      //free(L);
     }
     else{
       /* printf ("performing adaptive walk\n");*/
@@ -198,11 +187,6 @@ walk (void){
 	  else
 	    status[0]='D';
 	}
-	
-	/*
-	  newstruc = vrna_pt_to_db(pt);
-	  printf("%s (%6.2f)\n", newstruc, (float)enew/100);
-	*/
 	print_str(stdout,pt);
 	printf(" (%6.2f) %s\n", (float)enew/100,status);
 	e = enew;
@@ -214,11 +198,11 @@ walk (void){
     printf ("unknown walktype, exiting ...\n");
     exit(EXIT_FAILURE);
   }
-  
 }
 
 static void
-dump_items(gpointer data, gpointer user_data) {
+dump_items(gpointer data, gpointer user_data)
+{
   float energy;
   char *structure = (char*)data;
   energy = vrna_eval_structure(lilass.sequence, structure,P);
@@ -226,7 +210,8 @@ dump_items(gpointer data, gpointer user_data) {
 }
 
 static void
-free_key(gpointer data){
+free_key(gpointer data)
+{
   //fprintf(stderr, "[[free_key]] freeing %s\n", data);
   free(data);
 }
@@ -280,13 +265,17 @@ AWmin(short int *pt)
   */
  
   if(count == 0){ /* no adaptive walks neighbors found */
-    if (lila_is_minimum_pt(lilass.sequence,pt) == 1){
+    if (lila_is_minimum_pt(lilass.sequence,pt) == 1){ /* true minimun */
       int e;
       e = vrna_eval_structure_pt(lilass.sequence,pt,P);
       /* add struc to the list of minima */
       /* fprintf(stderr,"M %s (%6.2f) ADDED TO MINIMA\n",struc,(float)e/100); */
       g_hash_table_add(M,struc);
       // TODO: handle degenerate minima 
+    }
+    else if (lila_is_minimum_pt(lilass.sequence,pt) == -1) { /* degenerate minimum */
+      fprintf(stderr, "%s D\n",struc);
+      short int *npt = lila_degenerate_cc_min_pt(lilass.sequence,pt);
     }
     else{
       fprintf(stderr, "ERROR: no AW neighbors found, but structure isn't a minimum either\n");
