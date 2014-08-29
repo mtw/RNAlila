@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-29 16:17:25 mtw>
+  Last changed Time-stamp: <2014-08-30 00:37:39 mtw>
 */
 
 #include <stdio.h>
@@ -384,77 +384,78 @@ lila_db_from_pt(short int *pt)
 short int *
 lila_degenerate_cc_min_pt(const char *seq, short int *pt)
 {
-  /* OUTLINE:
-     - add current structure to todo list
-     while (Todo list not empty){
-     - generate all neighbours of current structure
-     - filter neighbours with the same energy
-     - and insert them into hash if they are not there yet
-     - insert them into todo list
-     - if cur neighbor is lexicographically smaller than father{
-      lowest_rep = cur_struc
-     }
-     ( optionally mark a structure if it has lower energy  neighbors )
-     }
-     
-  */
-  int e;
-  char *v;
+  int e,len;
+  short int *minpt = NULL;
+  char *v,*min;
   GQueue *TODO = g_queue_new(); /* the TODO list */
   GQueue *SEEN = g_queue_new(); /* list of structures already processed */
   v = lila_db_from_pt(pt);
-    
-  /* add first structure to the TODO queue */
+  min = strdup(v); // FREE ME
+  len= strlen(min);
+  
+  /* add first structure to the TODO and SEEN queues */
   g_queue_push_tail(TODO,v);
-  fprintf(stderr, ">> PUSH %s\n",v);
-  /*  and add it to the SEEN */
   g_queue_push_tail(SEEN,v); 
-
-
+  /* fprintf(stderr, ">> PUSH %s\n",v); */
+ 
   while(g_queue_is_empty(TODO) != TRUE){
     move_str *mvs = NULL;
     int i,count,emove;
     short int *p;
-    /* nachdem ich hier wiederholt runterpoppe wird der father immer wieder gepushed */
-    /* => dorch im hash merken was wir schon gesehen haben */
-    /* ev in einer zweiten liste merken was wir scvhon gesehen haben */
+
     v = (char*)g_queue_pop_head(TODO);
     p = vrna_pt_get(v);
     e = vrna_eval_structure_pt(lilass.sequence,p,P);
-    fprintf(stderr,">> POP  %s  (%6.2f) queuelen=%i\n", v,(float)e/100, g_queue_get_length(TODO));
+    /* fprintf(stderr,">> POP  %s  (%6.2f) queuelen=%i\n",
+       v,(float)e/100, g_queue_get_length(TODO)); */
     
     /* generate neighbors of v  */
     count = lila_construct_moves((const char *)seq,p,1,&mvs);
-    fprintf(stderr,">>> %i moves possible\n", count);
-      
+    /* fprintf(stderr,">>> %i moves possible\n", count);*/
+
     for(i=0;i<count;i++) {
       emove = vrna_eval_move_pt(p,s0,s1,mvs[i].left,mvs[i].right,P);
-      if(emove == 0){
-	fprintf(stderr," move #%i l:%3i|r:%3i  ",i,mvs[i].left,mvs[i].right);
-	fprintf(stderr," d(%6.2f) ",(float)emove/100);
+      fprintf(stderr," move #%i l:%3i|r:%3i  ",i,mvs[i].left,mvs[i].right);
+      fprintf(stderr," d(%6.2f) ",(float)emove/100);
+      if(emove == 0){ 	/* degenerate neighbor */
+
+
 	fprintf(stderr, "degenerate  \n");
-	/* degenerate neighbor */
+	
 	short int *ptbak = vrna_pt_copy(p);
 	lila_apply_move_pt(ptbak,mvs[i]);
 	char *w = lila_db_from_pt(ptbak);
-	fprintf(stderr, "        %s <<<<<\n",w);
 	/* insert into queue if not yet present */
-	if (g_queue_find_custom(Q,w,(GCompareFunc)lila_cmp_db) == NULL){
-	  g_queue_push_tail(Q,w);
-	  fprintf(stderr, ">> PUSH %s d(%6.2f) ", w, (float)emove/100);
-	  fprintf(stderr, " queuelen=%i\n", g_queue_get_length(Q));
+	if (g_queue_find_custom(SEEN,w,(GCompareFunc)lila_cmp_db) == NULL){
+	  g_queue_push_tail(TODO,w);
+	  g_queue_push_tail(SEEN,w);
+	  /* fprintf(stderr, ">> PUSH %s d(%6.2f) ", w, (float)emove/100); */
+	  
+	  /* find lexicographically lowest */
+	  if (strncmp(w,min,len) < 0){
+	    free(min);
+	    min = strdup(w);
+	    fprintf(stderr,"*");
+	  }
+	  fprintf(stderr,"\n");
 	}
-	
 	free(ptbak);
+      } /* end if */
+      else if (emove <0){
+	fprintf(stderr, "Found a shoulder in lila_degenerate_cc_min_pt\n");
       }
-      //fprintf(stderr,"\n");
-      //free(v);
+      else {
+	fprintf(stderr,"\n");
+      }
     } /* end for */
     free(mvs);
     //free(v);
-    fprintf(stderr,"-------------------  queuelen=%i\n", g_queue_get_length(Q));
   } /* end while */
+  g_queue_free(TODO);
+  g_queue_free(SEEN);
+
+  minpt = vrna_pt_get(min);
+  free(min);
   
-  g_queue_free(Q);
   return pt;
 }
