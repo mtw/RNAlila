@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-08-29 11:55:02 mtw>
+  Last changed Time-stamp: <2014-09-02 18:00:40 mtw>
 */
 
 #include <stdio.h>
@@ -179,7 +179,7 @@ walk (void)
 	  /* validate topological status: transient or minimum?  NOTE:
 	     this is expensive since ALL neighbors are re-generated and
 	     re-evaluated */
-	  ismin = lila_is_minimum_pt(lilass.sequence,pt);
+	  ismin = lila_is_minimum_or_shoulder_pt(lilass.sequence,pt);
 	  if (ismin == 1)
 	    status[0]='*';
 	  else if (ismin == 0)
@@ -247,13 +247,15 @@ AWmin(short int *pt)
   if(struc == NULL)
     fprintf(stderr,"struc is a NULl pointer; this shouldn't happen\n");
   /* fprintf(stderr,"  %s INSERTED ",struc); */
-  g_hash_table_add(S,struc); /* key == value */
-  /*
-    size = g_hash_table_size(S);
-    fprintf(stderr,"[hashsize=%i]\n",size);
-  */
-  /* get move operations for all AW neighbors */
-  moves = lila_all_adaptive_moves_pt(lilass.sequence,pt,&count);
+  if(g_hash_table_contains(S,struc))
+    return;
+  else
+    g_hash_table_add(S,struc); /* key == value */
+  /* fprintf(stderr,"[hashsize=%i]\n", g_hash_table_size(S); */
+  
+  /* get move operations for all AW neighbors, INCUDING DEGENERATE
+     NEIGHBORS (!) */
+  moves = lila_all_adaptive_moves_pt(lilass.sequence,pt,&count,0);
   /* //count number of adaptive move operation
      {
      int k;
@@ -265,7 +267,8 @@ AWmin(short int *pt)
   */
  
   if(count == 0){ /* no adaptive walks neighbors found */
-    if (lila_is_minimum_pt(lilass.sequence,pt) == 1){ /* true minimun */
+    if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == 1){
+      /* it's a true minimun */
       int e;
       e = vrna_eval_structure_pt(lilass.sequence,pt,P);
       /* add struc to the list of minima */
@@ -273,7 +276,8 @@ AWmin(short int *pt)
       g_hash_table_add(M,struc);
       // TODO: handle degenerate minima 
     }
-    else if (lila_is_minimum_pt(lilass.sequence,pt) == -1) { /* degenerate minimum */
+    else if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == -1) {
+      /* it's a degenerate minimum or a shoulder */
       fprintf(stderr, "%s D\n",struc);
       short int *npt = lila_degenerate_cc_min_pt(lilass.sequence,pt);
     }

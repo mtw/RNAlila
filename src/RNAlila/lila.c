@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-08-29 13:05:50 mtw>
+  Last changed Time-stamp: <2014-09-02 17:58:46 mtw>
 */
 
 #include <stdio.h>
@@ -127,8 +127,61 @@ lila_basename(char *arg)
 }
 
 /**/
-int lila_cmp_db(void *a, void *b)
+int
+lila_cmp_db(void *a, void *b)
 {
   return strcmp(a,b);	
+}
+
+/*
+  Compare function for sseT (see lila.h); Compares (dot bracket)
+  structures lexicographically.
+*/
+int
+lila_cmp_sse_lex(void *a, void *b)
+{
+  const Lila2seT *ma = a;
+  const Lila2seT *mb = b;
+
+  return strcmp(ma->structure,mb->structure);
+}
+
+/*
+  Compare function for sseT (see lila.h); Compares energies.
+*/
+int
+lila_cmp_sse_en(void *a, void *b)
+{
+  const Lila2seT *ma = a;
+  const Lila2seT *mb = b;
+
+  if (ma->energy > mb->energy)
+    return 1;
+  else if (ma->energy < mb->energy)
+    return -1;
+  else
+    return 0;
+}
+
+/*
+  Compare function for sseT (see lila.h); Compares first by energy,
+  then by lexicographical order of structure.
+*/
+int
+lila_cmp_sse_lexen(void *a, void *b)
+{
+  const Lila2seT *ma = a;
+  const Lila2seT *mb = b;
+
+  int comp = ma->energy - mb->energy;
+
+  if (comp < 0)
+    return -1;
+  
+  if (comp > 0)
+    return 1;
+  
+  comp = strcmp(ma->structure, mb->structure);
+  return comp;
 }
 

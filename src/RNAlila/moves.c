@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-08-30 00:37:39 mtw>
+  Last changed Time-stamp: <2014-09-02 18:27:46 mtw>
 */
 
 #include <stdio.h>
@@ -118,10 +118,11 @@ lila_adaptive_move_pt(const char *seq, short int *pt)
 /*
   get all adaptive move operations on a pair table. Returns an array
   of individual move operations to be applied to pt or NULL if no
-  moves are possible
+  moves are possible. The 'want_degenerate' argument indicates whether
+  degenerate neighbors are considered adaptive.
 */
 move_str* 
-lila_all_adaptive_moves_pt(const char *seq, short int *pt, int *ct)
+lila_all_adaptive_moves_pt(const char *seq, short int *pt, int *ct, int want_degenerate)
 {
   move_str r,*mvs=NULL, *allmvs=NULL;
   int i,count,e,j=0;
@@ -129,46 +130,58 @@ lila_all_adaptive_moves_pt(const char *seq, short int *pt, int *ct)
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   allmvs = (move_str*)calloc(count,sizeof(move_str));
 
+#ifdef PARANOID
   { /* begin paranoid energy evaluation  REMOVE ME */
-     e = vrna_eval_structure_pt(lilass.sequence,pt,P);
+     e = vrna_eval_structure_pt(seq,pt,P);
   } /* end paranoid energy evaluation */
+#endif
   
   for(i=0;i<count;i++){
-    if(vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P) < 0){
-      allmvs[j] = mvs[i];
-      j++;
-      
-      { /* begin paranoid energy evaluation REMOVE ME */
-	int emove,enew,e2;
-	short int *ptbak=NULL;
-	move_str m;
-	m.left  = mvs[i].left;
-	m.right = mvs[i].right;
-	/* copy pair table, operate on this copy */
-	ptbak = vrna_pt_copy(pt);
-	/* compute energy difference for this move */
-	emove = vrna_eval_move_pt(ptbak,s0,s1,m.left,m.right,P);
-	/* evaluate energy of the new structure */
-	enew = e + emove;
-	/* do the move */
-	lila_apply_move_pt(ptbak,m);
-	/* eval energy of the new structure */
-	e2 =  vrna_eval_structure_pt(seq,ptbak,P);
-
-	if (e2 != enew){
-	  fprintf(stderr, "energy evaluation against vrna_eval_structure_pt() mismatch... HAVE %6.2f != %6.2f (SHOULD BE)\n",(float)enew/100, (float)e2/100);
-	  
-	  fprintf(stderr,"INPUT pt:\n");
-	  lila_dump_pt(pt);
-	  fprintf(stderr, "AW NEIGHBOUR pt:\n");
-	  lila_dump_pt(ptbak);
-	}
-	free(ptbak);
-      } /* end paranoid energy evaluation */
-      
-      
+    int ediff = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
+    if (want_degenerate == 1){
+      if(ediff <= 0){
+	allmvs[j] = mvs[i];
+	j++;
+      }
     }
-  }
+    else{
+      if(ediff < 0){
+	allmvs[j] = mvs[i];
+	j++;
+	
+#ifdef PARANOID      
+	{ /* begin paranoid energy evaluation REMOVE ME */
+	  int emove,enew,e2;
+	  short int *ptbak=NULL;
+	  move_str m;
+	  m.left  = mvs[i].left;
+	  m.right = mvs[i].right;
+	  /* copy pair table, operate on this copy */
+	  ptbak = vrna_pt_copy(pt);
+	  /* compute energy difference for this move */
+	  emove = vrna_eval_move_pt(ptbak,s0,s1,m.left,m.right,P);
+	  /* evaluate energy of the new structure */
+	  enew = e + emove;
+	  /* do the move */
+	  lila_apply_move_pt(ptbak,m);
+	  /* eval energy of the new structure */
+	  e2 =  vrna_eval_structure_pt(seq,ptbak,P);
+	  
+	  if (e2 != enew){
+	    fprintf(stderr, "energy evaluation against vrna_eval_structure_pt() mismatch... HAVE %6.2f != %6.2f (SHOULD BE)\n",(float)enew/100, (float)e2/100);
+	    
+	    fprintf(stderr,"INPUT pt:\n");
+	    lila_dump_pt(pt);
+	    fprintf(stderr, "AW NEIGHBOUR pt:\n");
+	    lila_dump_pt(ptbak);
+	  }
+	  free(ptbak);
+	} /* end paranoid energy evaluation */
+#endif      
+	
+      } /* end if */
+    } /* end else */
+  } /* end for */
   *ct = j;
   free(mvs);
   if(j>0)
@@ -329,7 +342,7 @@ lila_RNAlexicographicalOrder(const void *a, const void *b)
   are neighbour structures at the same energy level).
  */
 int
-lila_is_minimum_pt(const char *seq, short int *pt)
+lila_is_minimum_or_shoulder_pt(const char *seq, short int *pt)
 {
   move_str r,*mvs=NULL;
   int rv,i,count,emove;
@@ -341,7 +354,7 @@ lila_is_minimum_pt(const char *seq, short int *pt)
       free(mvs);
       return 0;
     }
-    if (emove == 0) { /*degenerate neighbor found */
+    if (emove == 0) { /* degenerate neighbor found */
       free(mvs);
       return -1;
     }
@@ -384,18 +397,25 @@ lila_db_from_pt(short int *pt)
 short int *
 lila_degenerate_cc_min_pt(const char *seq, short int *pt)
 {
-  int e,len;
+  int i,e,len,comp_size=1000;
   short int *minpt = NULL;
   char *v,*min;
   GQueue *TODO = g_queue_new(); /* the TODO list */
   GQueue *SEEN = g_queue_new(); /* list of structures already processed */
+
+  cc = (Lila2seT*)calloc(comp_size,sizeof(Lila2seT));
   v = lila_db_from_pt(pt);
   min = strdup(v); // FREE ME
-  len= strlen(min);
+  len = strlen(min);
+  i=0;
   
-  /* add first structure to the TODO and SEEN queues */
+  /* add first structure to TODO and SEEN queues and the connected component list */
   g_queue_push_tail(TODO,v);
-  g_queue_push_tail(SEEN,v); 
+  g_queue_push_tail(SEEN,v);
+  cc[i].structure = strdup(v);
+  cc[i].energy = vrna_eval_structure(seq,v,P);
+  i++;
+  
   /* fprintf(stderr, ">> PUSH %s\n",v); */
  
   while(g_queue_is_empty(TODO) != TRUE){
@@ -405,47 +425,46 @@ lila_degenerate_cc_min_pt(const char *seq, short int *pt)
 
     v = (char*)g_queue_pop_head(TODO);
     p = vrna_pt_get(v);
-    e = vrna_eval_structure_pt(lilass.sequence,p,P);
-    /* fprintf(stderr,">> POP  %s  (%6.2f) queuelen=%i\n",
-       v,(float)e/100, g_queue_get_length(TODO)); */
+    e = vrna_eval_structure_pt(seq,p,P);
+    fprintf(stderr,"%s (%6.2f) POP queuelen=%i\n",
+	    v,(float)e/100, g_queue_get_length(TODO)); 
     
     /* generate neighbors of v  */
     count = lila_construct_moves((const char *)seq,p,1,&mvs);
-    /* fprintf(stderr,">>> %i moves possible\n", count);*/
+    fprintf(stderr,">>> %i moves possible\n", count);
 
-    for(i=0;i<count;i++) {
+     for(i=0;i<count;i++) {
       emove = vrna_eval_move_pt(p,s0,s1,mvs[i].left,mvs[i].right,P);
-      fprintf(stderr," move #%i l:%3i|r:%3i  ",i,mvs[i].left,mvs[i].right);
-      fprintf(stderr," d(%6.2f) ",(float)emove/100);
       if(emove == 0){ 	/* degenerate neighbor */
-
-
+	fprintf(stderr," move #%i l:%3i|r:%3i  ",i,mvs[i].left,mvs[i].right);
+	fprintf(stderr," d(%6.2f) ",(float)emove/100);
 	fprintf(stderr, "degenerate  \n");
 	
 	short int *ptbak = vrna_pt_copy(p);
 	lila_apply_move_pt(ptbak,mvs[i]);
 	char *w = lila_db_from_pt(ptbak);
+	
 	/* insert into queue if not yet present */
 	if (g_queue_find_custom(SEEN,w,(GCompareFunc)lila_cmp_db) == NULL){
 	  g_queue_push_tail(TODO,w);
 	  g_queue_push_tail(SEEN,w);
-	  /* fprintf(stderr, ">> PUSH %s d(%6.2f) ", w, (float)emove/100); */
+	  fprintf(stderr, "%s d(%6.2f) PUSH", w, (float)emove/100); 
+	  /*TODO check if realloc is required */
+	  cc[i].structure = strdup(w);
+	  cc[i].energy = vrna_eval_structure(seq,w,P);
+	  i++;
 	  
-	  /* find lexicographically lowest */
-	  if (strncmp(w,min,len) < 0){
-	    free(min);
-	    min = strdup(w);
-	    fprintf(stderr,"*");
-	  }
 	  fprintf(stderr,"\n");
 	}
 	free(ptbak);
       } /* end if */
-      else if (emove <0){
-	fprintf(stderr, "Found a shoulder in lila_degenerate_cc_min_pt\n");
+      else if (emove <0){ /* shoulder */
+	fprintf(stderr," move #%i l:%3i|r:%3i  ",i,mvs[i].left,mvs[i].right);
+	fprintf(stderr," d(%6.2f) ",(float)emove/100);
+	fprintf(stderr, "we have a shoulder\n");
       }
       else {
-	fprintf(stderr,"\n");
+	//fprintf(stderr,"\n");
       }
     } /* end for */
     free(mvs);
@@ -453,6 +472,17 @@ lila_degenerate_cc_min_pt(const char *seq, short int *pt)
   } /* end while */
   g_queue_free(TODO);
   g_queue_free(SEEN);
+
+
+  /* TODO find lexicographically lowest, however this is better done
+     outside this function -> therefore rename this to get_component or so */
+  
+  /* free connected component list OUTSIDE THIS FUNCTION. HERE we
+     return a pointer to this list */
+  int j;
+  for (j=0;j<i;j++){
+    free(cc[j].structure);
+  }
 
   minpt = vrna_pt_get(min);
   free(min);

@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-08-29 13:04:54 mtw>
+  Last changed Time-stamp: <2014-09-02 17:49:58 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -32,7 +32,12 @@ typedef struct _lilass {
   char *sequence;
   char *structure;
   int length;
-} lilassT;
+} lilassT;                 /* sequence, secondary structure and length */       
+
+typedef struct _lila2se {
+  char *structure;
+  float energy;
+} Lila2seT;                 /* secondary structure and energy */
 
 /* variables */
 paramT *P;
@@ -58,5 +63,8 @@ void lila_set_vcd_options(const unsigned int temp_given,
 			  const int noLP_flag);
 char *lila_db_from_pt(short int*);
 int   lila_cmp_db(void *,void *);
+int   lila_cmp_ss_lex(void *, void *);
+int   lila_cmp_ss_en(void *, void *);
+int   lila_cmp_ss_lexen(void *, void *);
 
 #endif
