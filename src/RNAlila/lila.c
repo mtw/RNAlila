@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-09-03 15:48:43 mtw>
+  Last changed Time-stamp: <2014-09-03 23:43:34 mtw>
 */
 
 #include <stdio.h>
@@ -128,7 +128,8 @@ lila_basename(char *arg)
 
 /**/
 int
-lila_cmp_db(void *a, void *b)
+lila_cmp_db(void *a,
+	    void *b)
 {
   return strcmp(a,b);	
 }
@@ -150,7 +151,8 @@ lila_cmp_sse_lex(const void *a, const void *b)
   Compare function for sseT (see lila.h); Compares energies.
 */
 int
-lila_cmp_sse_en(const void *a, const void *b)
+lila_cmp_sse_en(const void *a,
+		const void *b)
 {
   const Lila2seT *ma = a;
   const Lila2seT *mb = b;
@@ -168,7 +170,8 @@ lila_cmp_sse_en(const void *a, const void *b)
   then by lexicographical order of structure.
 */
 int
-lila_cmp_sse_lexen(const void *a, const void *b)
+lila_cmp_sse_lexen(const void *a,
+		   const void *b)
 {
   const Lila2seT *ma = a;
   const Lila2seT *mb = b;
@@ -185,3 +188,23 @@ lila_cmp_sse_lexen(const void *a, const void *b)
   return comp;
 }
 
+/*
+  Dump one element of a Lila2seT list.
+*/
+void
+lila_print_2se(gpointer data,
+	       gpointer user_data)
+{
+  Lila2seT *foo = (Lila2seT *)data;
+  fprintf(stderr,"%s (%6.4f)\n",foo->structure,foo->energy);
+}
+
+/*
+  Free space allocated for a Lils2seT
+*/
+void
+lila_free_cc(gpointer data)
+{
+  Lila2seT *foo = (Lila2seT *)data;
+  free(foo->structure);
+}

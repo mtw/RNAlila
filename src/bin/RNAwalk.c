@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-09-03 16:59:07 mtw>
+  Last changed Time-stamp: <2014-09-03 23:53:34 mtw>
 */
 
 #include <stdio.h>
@@ -282,7 +282,9 @@ AWmin(short int *pt)
     }
   }
   else if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == -1) {
-    char *s = NULL;
+    GList *f = NULL;
+    Lila2seT *l = NULL;
+    char *lexmin = NULL;
     /* it's a degenerate minimum or a shoulder */
     fprintf(stderr, "%s D ",struc);
     int ismin = lila_get_cc_pt(lilass.sequence,pt);
@@ -290,8 +292,9 @@ AWmin(short int *pt)
       fprintf(stderr, "MINIMUM COMPONENT\n");
     else
       fprintf(stderr, "SHOULDER COMPONENT\n");
-    s = lila_lexmin_cc();
-    g_hash_table_add(M,s);
+    f = lila_lexmin_cc();
+    l = (Lila2seT *)f;
+    g_hash_table_add(M,l->structure);
     lila_dump_cc();
     // TODO  add elements of cc to S
     fprintf(stderr,"---\n");

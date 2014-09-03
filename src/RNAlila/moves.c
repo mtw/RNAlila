@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-09-03 17:53:20 mtw>
+  Last changed Time-stamp: <2014-09-03 23:40:29 mtw>
 */
 
 #include <stdio.h>
@@ -32,7 +32,8 @@ GList *cc;  /* connected component */
   returns move operations to be applied to pt in order to perform the move
 */
 move_str
-lila_random_move_pt(const char *seq, short int *pt)
+lila_random_move_pt(const char *seq,
+		    short int *pt)
 {
   move_str r,*mvs=NULL;
   int count;
@@ -82,7 +83,8 @@ lila_gradient_move_pt(const char *seq, short int *pt)
   returns move operations to be applied to pt in order to perform the move
 */
 move_str
-lila_adaptive_move_pt(const char *seq, short int *pt)
+lila_adaptive_move_pt(const char *seq,
+		      short int *pt)
 {
   move_str r,*mvs=NULL;
   int i,count,have_aw_nb=0;
@@ -124,7 +126,10 @@ lila_adaptive_move_pt(const char *seq, short int *pt)
   degenerate neighbors are considered adaptive.
 */
 move_str* 
-lila_all_adaptive_moves_pt(const char *seq, short int *pt, int *ct, int want_degenerate)
+lila_all_adaptive_moves_pt(const char *seq,
+			   short int *pt,
+			   int *ct,
+			   int want_degenerate)
 {
   move_str r,*mvs=NULL, *allmvs=NULL;
   int i,count,e,j=0;
@@ -215,9 +220,9 @@ lila_apply_move_pt(short int *pt,
 
 static int
 lila_construct_moves(const char *seq,
-		    const short *structure,
-		    int permute,
-		    move_str **array)
+		     const short *structure,
+		     int permute,
+		     move_str **array)
 {
   /* generate all possible moves (less than n^2)*/
   int i;
@@ -410,10 +415,10 @@ lila_get_cc_pt(const char *seq,
 {
   int min,e;
   short int *minpt = NULL;
-  char *v;
+  char *v = NULL;
   GQueue *TODO = g_queue_new(); /* the TODO list */
   GQueue *SEEN = g_queue_new(); /* list of structures already processed */
-  Lila2seT *element;
+  Lila2seT *element = NULL;
   
   min = 1; /* initially mark this component minimal */
   v = lila_db_from_pt(pt);
@@ -457,14 +462,14 @@ lila_get_cc_pt(const char *seq,
 	
 	/* insert into queue if not yet present */
 	if (g_queue_find_custom(SEEN,w,(GCompareFunc)lila_cmp_db) == NULL){
-	  Lila2seT e;
+	  Lila2seT *e = NULL;
 	  g_queue_push_tail(TODO,w);
 	  g_queue_push_tail(SEEN,w);
 	  /* fprintf(stderr, "%s d(%6.2f) PUSH", w, (float)emove/100); */
 	  
 	  /* add structure and energy to connected component list */
-	  e.structure = strdup(w);
-	  e.energy = vrna_eval_structure(seq,w,P);
+	  e->structure = strdup(w);
+	  e->energy = vrna_eval_structure(seq,w,P);
 	  cc = g_list_append(cc,&e);
 	  
 	  /* fprintf(stderr,"\n"); */
@@ -508,13 +513,7 @@ lila_lexmin_cc(void)
 void
 lila_dump_cc(void)
 {
-  int i=0;
-  for (i=0;i<cc_size;i++){
-    if(cc[i].structure == NULL)
-      continue;
-    fprintf(stderr,"%s (%6.2f) CC \n",cc[i].structure,cc[i].energy);
-    i++;
-  }
+  g_list_foreach(cc,(GFunc)lila_print_2se,"stderr");
 }
 
 /*
@@ -523,8 +522,5 @@ lila_dump_cc(void)
 void
 lila_cleanup_cc(void)
 {
-  int i;
-  for (i=0;i<cc_size;i++){
-    free(cc[i].structure);
-  }  
+  g_list_free_full(cc,(GDestroyNotify)lila_free_cc);
 }
