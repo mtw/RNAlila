@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-09-02 17:58:46 mtw>
+  Last changed Time-stamp: <2014-09-03 15:48:43 mtw>
 */
 
 #include <stdio.h>
@@ -138,7 +138,7 @@ lila_cmp_db(void *a, void *b)
   structures lexicographically.
 */
 int
-lila_cmp_sse_lex(void *a, void *b)
+lila_cmp_sse_lex(const void *a, const void *b)
 {
   const Lila2seT *ma = a;
   const Lila2seT *mb = b;
@@ -150,7 +150,7 @@ lila_cmp_sse_lex(void *a, void *b)
   Compare function for sseT (see lila.h); Compares energies.
 */
 int
-lila_cmp_sse_en(void *a, void *b)
+lila_cmp_sse_en(const void *a, const void *b)
 {
   const Lila2seT *ma = a;
   const Lila2seT *mb = b;
@@ -168,7 +168,7 @@ lila_cmp_sse_en(void *a, void *b)
   then by lexicographical order of structure.
 */
 int
-lila_cmp_sse_lexen(void *a, void *b)
+lila_cmp_sse_lexen(const void *a, const void *b)
 {
   const Lila2seT *ma = a;
   const Lila2seT *mb = b;

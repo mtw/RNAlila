@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-09-02 18:00:40 mtw>
+  Last changed Time-stamp: <2014-09-03 16:59:07 mtw>
 */
 
 #include <stdio.h>
@@ -255,7 +255,7 @@ AWmin(short int *pt)
   
   /* get move operations for all AW neighbors, INCUDING DEGENERATE
      NEIGHBORS (!) */
-  moves = lila_all_adaptive_moves_pt(lilass.sequence,pt,&count,0);
+  moves = lila_all_adaptive_moves_pt(lilass.sequence,pt,&count,1);
   /* //count number of adaptive move operation
      {
      int k;
@@ -274,12 +274,6 @@ AWmin(short int *pt)
       /* add struc to the list of minima */
       /* fprintf(stderr,"M %s (%6.2f) ADDED TO MINIMA\n",struc,(float)e/100); */
       g_hash_table_add(M,struc);
-      // TODO: handle degenerate minima 
-    }
-    else if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == -1) {
-      /* it's a degenerate minimum or a shoulder */
-      fprintf(stderr, "%s D\n",struc);
-      short int *npt = lila_degenerate_cc_min_pt(lilass.sequence,pt);
     }
     else{
       fprintf(stderr, "ERROR: no AW neighbors found, but structure isn't a minimum either\n");
@@ -287,8 +281,22 @@ AWmin(short int *pt)
       fprintf(stderr, "%s\n",struc);
     }
   }
+  else if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == -1) {
+    char *s = NULL;
+    /* it's a degenerate minimum or a shoulder */
+    fprintf(stderr, "%s D ",struc);
+    int ismin = lila_get_cc_pt(lilass.sequence,pt);
+    if (ismin == 1)
+      fprintf(stderr, "MINIMUM COMPONENT\n");
+    else
+      fprintf(stderr, "SHOULDER COMPONENT\n");
+    s = lila_lexmin_cc();
+    g_hash_table_add(M,s);
+    lila_dump_cc();
+    // TODO  add elements of cc to S
+    fprintf(stderr,"---\n");
+  }
   else{
-   
     for(i=0;i<count;i++){ /* loop over all move operations */
       ptbak = vrna_pt_copy(pt);
       char *v;
@@ -329,11 +337,10 @@ AWmin(short int *pt)
 	fprintf(stderr, "B %s [after resetting]\n",v);
 	free(v);
       */
-    }
-    /* fprintf(stderr,"\n"); */
-  }
+    } /* end for */
+  } /* end else */
   free(ptbak);
-  //free(struc);
+
   if(moves != NULL) free(moves);
 }
 
