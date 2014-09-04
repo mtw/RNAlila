@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-09-03 23:53:34 mtw>
+  Last changed Time-stamp: <2014-09-04 17:16:34 mtw>
 */
 
 #include <stdio.h>
@@ -194,6 +194,25 @@ walk (void)
       }
     }    
   }
+  else if (local_opt.walktype == 'N'){
+    /* printf ("computing neighbors only\n");*/
+    GQueue *nb = NULL;
+    
+    nb = lila_generate_neighbors_pt((const char *)lilass.sequence,pt);
+    
+    /* make a random move */
+    m = lila_gradient_move_pt(lilass.sequence,pt);
+    /* compute energy difference for this move */
+    emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+    /* evaluate energy of the new structure */
+    enew = e + emove;
+    /* do the move */
+    lila_apply_move_pt(pt,m);
+    print_str(stdout,pt);
+    printf(" (%6.2f)\n", (float)enew/100);
+    e = enew;
+    len++;
+  }
   else {
     printf ("unknown walktype, exiting ...\n");
     exit(EXIT_FAILURE);
@@ -282,21 +301,26 @@ AWmin(short int *pt)
     }
   }
   else if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == -1) {
-    GList *f = NULL;
+    /* it's a degenerate minimum or a shoulder */
+    GList *f,*conncomp;
     Lila2seT *l = NULL;
     char *lexmin = NULL;
-    /* it's a degenerate minimum or a shoulder */
-    fprintf(stderr, "%s D ",struc);
-    int ismin = lila_get_cc_pt(lilass.sequence,pt);
+    int ismin;
+  
+    fprintf(stderr, "%s D\n",struc);
+    conncomp = lila_get_cc_pt(lilass.sequence,pt,&ismin);
+    lila_dump_cc(conncomp);
     if (ismin == 1)
       fprintf(stderr, "MINIMUM COMPONENT\n");
     else
       fprintf(stderr, "SHOULDER COMPONENT\n");
-    f = lila_lexmin_cc();
+    f = lila_lexmin_cc(conncomp);
     l = (Lila2seT *)f;
     g_hash_table_add(M,l->structure);
-    lila_dump_cc();
-    // TODO  add elements of cc to S
+    
+    lila_cc2hash(S,conncomp); /* add all elements of connected component to S */
+    
+    lila_cleanup_cc(conncomp);
     fprintf(stderr,"---\n");
   }
   else{
@@ -377,10 +401,12 @@ process_app_options(int argc, char **argv)
       local_opt.walktype = 'A';
     else if(  strncmp(args_info.walktype_arg, "G", 1)==0 )
       local_opt.walktype = 'G';
-     else if(  strncmp(args_info.walktype_arg, "R", 1)==0 )
-       local_opt.walktype = 'R';
+    else if(  strncmp(args_info.walktype_arg, "R", 1)==0 )
+      local_opt.walktype = 'R';
+    else if(  strncmp(args_info.walktype_arg, "N", 1)==0 )
+      local_opt.walktype = 'N';
      else {
-       fprintf(stderr, "argument of --walktype must be A, G or R\n");
+       fprintf(stderr, "argument of --walktype must be A, G, R or N\n");
        exit(EXIT_FAILURE);
      }
   }

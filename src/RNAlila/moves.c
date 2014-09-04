@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-09-03 23:40:29 mtw>
+  Last changed Time-stamp: <2014-09-04 17:06:34 mtw>
 */
 
 #include <stdio.h>
@@ -18,14 +18,49 @@ static int lila_RNAlexicographicalOrder(const void *, const void *);
 inline int try_insert_seq2(const char*, int, int);
 inline int compat(const char, const char);
 void lila_dump_pt(const short*);
-
+void lila_structure2hash(gpointer,gpointer);
+  
 typedef struct _nb {
   char *struc;
   int ediff;
   short n;
 } nbT;
 
-GList *cc;  /* connected component */
+
+/*
+  Generate all neighbors of a secondary structure (provided via a pair
+  table). Returns a pointer to an energy-lexicographically sorted
+  GQueue of LilaDBE-type elements .
+*/
+GQueue *
+lila_generate_neighbors_pt(const char *seq,
+			   short int *pt)
+{
+  int i,e,count;
+  move_str r,*mvs=NULL;
+
+  GQueue *N = g_queue_new();
+  e = vrna_eval_structure_pt(seq,pt,P);
+  count = lila_construct_moves(seq,pt,1,&mvs);
+
+  for(i=0;i<count;i++) {
+    LilaDBE *nb = NULL;
+    nb = (LilaDBE*)calloc(1,sizeof(LilaDBE));
+    move_str m = mvs[i];
+    int emove =  vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+    short int *ptbak = vrna_pt_copy(pt);
+    lila_apply_move_pt(ptbak,m);
+    char *struc =  vrna_pt_to_db(ptbak);
+    nb->structure = strdup(struc);
+    nb->energy = e + emove;
+    g_queue_push_tail(N,nb);
+    free(ptbak);
+    free(struc);
+  }
+  return N;
+  // TODO free the gQueue in a separate function;
+  // call lila_get_cc_pt for each neighbor
+}
 
 /*
   get random move operation on a pair table
@@ -63,7 +98,8 @@ lila_gradient_move_pt(const char *seq, short int *pt)
   
   for(i=0;i<count;i++) {
     neighbours[i].ediff = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
-    neighbours[i].struc = vrna_pt_to_db(pt);
+    /* seems we're storing the same pt here sinde the move is not applied */
+    neighbours[i].struc = vrna_pt_to_db(pt); 
     neighbours[i].n = i;
   }
   qsort(neighbours, count, sizeof(nbT), lila_RNAlexicographicalOrder);
@@ -409,16 +445,18 @@ lila_db_from_pt(short int *pt)
   energies. The return value indicates whether the component is
   minimal, ie. whether it has lower energy neighbors (0 or 1).
  */
-int
+GList *
 lila_get_cc_pt(const char *seq,
-	       short int *pt)
+	       short int *pt,
+	       int *ismin)
 {
   int min,e;
   short int *minpt = NULL;
   char *v = NULL;
   GQueue *TODO = g_queue_new(); /* the TODO list */
   GQueue *SEEN = g_queue_new(); /* list of structures already processed */
-  Lila2seT *element = NULL;
+  GList *cc = NULL;
+  Lila2seT *element =NULL;
   
   min = 1; /* initially mark this component minimal */
   v = lila_db_from_pt(pt);
@@ -428,9 +466,11 @@ lila_get_cc_pt(const char *seq,
   g_queue_push_tail(SEEN,v);
 
   /* add first element to cc list */
+  element = (Lila2seT*)calloc(1,sizeof(Lila2seT));
   element->structure = strdup(v);
   element->energy = vrna_eval_structure(seq,v,P);
-  cc = g_list_append(cc,&element);
+  /* fprintf(stderr, "\n%s (%6.4f) added to cc list\n",v,element->energy);*/
+  cc = g_list_append(cc,element);
   
   /* fprintf(stderr, ">> PUSH %s\n",v); */
  
@@ -462,16 +502,18 @@ lila_get_cc_pt(const char *seq,
 	
 	/* insert into queue if not yet present */
 	if (g_queue_find_custom(SEEN,w,(GCompareFunc)lila_cmp_db) == NULL){
-	  Lila2seT *e = NULL;
+	 
 	  g_queue_push_tail(TODO,w);
 	  g_queue_push_tail(SEEN,w);
 	  /* fprintf(stderr, "%s d(%6.2f) PUSH", w, (float)emove/100); */
 	  
 	  /* add structure and energy to connected component list */
+	  Lila2seT *e = NULL;
+	  e = (Lila2seT*)calloc(1,sizeof(Lila2seT));
 	  e->structure = strdup(w);
 	  e->energy = vrna_eval_structure(seq,w,P);
-	  cc = g_list_append(cc,&e);
-	  
+	  cc = g_list_append(cc,e);
+	  /* fprintf(stderr, "%s (%6.4f) added to cc list\n",w,e->energy);*/
 	  /* fprintf(stderr,"\n"); */
 	}
 	free(ptbak);
@@ -492,18 +534,51 @@ lila_get_cc_pt(const char *seq,
   g_queue_free(TODO);
   g_queue_free(SEEN);
 
-  return min;
+  *ismin = min;
+  return cc;
+}
+/*
+  Insert all elements of a GList to a GHash
+*/
+void
+lila_cc2hash(GHashTable *S,
+	     GList *cc)
+{
+  fprintf(stderr,"[[lila_cc2hash]]::BEFORE %i\n", (int)g_hash_table_size(S));
+  g_list_foreach(cc,(GFunc)lila_structure2hash,S);
+  fprintf(stderr,"[[lila_cc2hash]]::AFTER %i\n", (int)g_hash_table_size(S));
+}
+
+/*
+  Add a secondary structure from Lila2seT into a hash
+*/
+void
+lila_structure2hash(gpointer data,
+		    gpointer user_data)
+{
+  Lila2seT *foo = (Lila2seT *)data;
+  GHashTable *S = (GHashTable *)user_data;
+  char *form = strdup(foo->structure);
+  if (g_hash_table_contains(S,form))
+    fprintf(stderr, "%s ALREADY in hash ",form);
+  else{
+    g_hash_table_add(S, form);
+    fprintf(stderr, "%s INSERTED to hash ",form);
+  }
+  fprintf(stderr, " [hashsize(S): %i]\n",(int)g_hash_table_size(S));
+  
 }
 
 /*
   Return the lexicographically lowest member of a connected component
 */
 GList *
-lila_lexmin_cc(void)
+lila_lexmin_cc(GList *c)
 {
   //qsort(cc,cc_entries,sizeof(Lila2seT),lila_cmp_sse_lex);
-  cc = g_list_sort(cc,(GCompareFunc)lila_cmp_sse_lex);
-  GList *first = g_list_first(cc);
+  fprintf(stderr,"[[lila_lexmin_cc]]::GList length is %i\n", (int)g_list_length(c));
+  c = g_list_sort(c,(GCompareFunc)lila_cmp_sse_lex);
+  GList *first = g_list_first(c);
   return first;
 }
 
@@ -511,16 +586,18 @@ lila_lexmin_cc(void)
   Dump connected component array to stderr
 */
 void
-lila_dump_cc(void)
+lila_dump_cc(GList *c)
 {
-  g_list_foreach(cc,(GFunc)lila_print_2se,"stderr");
+  /* fprintf(stderr,"[[lila_dump_cc]]::START\n"); */
+  g_list_foreach(c,(GFunc)lila_print_2se,NULL);
+  /* fprintf(stderr,"[[lila_dump_cc]]::END\n");	  */ 
 }
 
 /*
   Cleanup connected component array
 */
 void
-lila_cleanup_cc(void)
+lila_cleanup_cc(GList *c)
 {
-  g_list_free_full(cc,(GDestroyNotify)lila_free_cc);
+  g_list_free_full(c,(GDestroyNotify)lila_free_cc);
 }

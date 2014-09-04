@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-09-03 23:43:34 mtw>
+  Last changed Time-stamp: <2014-09-04 12:28:48 mtw>
 */
 
 #include <stdio.h>
@@ -196,7 +196,7 @@ lila_print_2se(gpointer data,
 	       gpointer user_data)
 {
   Lila2seT *foo = (Lila2seT *)data;
-  fprintf(stderr,"%s (%6.4f)\n",foo->structure,foo->energy);
+  fprintf(stderr,"%s (%6.4f) CC\n",foo->structure,foo->energy);
 }
 
 /*

@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-09-03 23:44:07 mtw>
+  Last changed Time-stamp: <2014-09-04 16:59:08 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -38,6 +38,9 @@ typedef struct _lila2se {
   char *structure;
   float energy;
 } Lila2seT;                 /* secondary structure and energy */
+
+
+typedef Lila2seT LilaDBE;   /* dot bracket & energy */
 
 /* variables */
 paramT *P;

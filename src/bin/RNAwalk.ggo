@@ -8,9 +8,10 @@ option "walktype" t
 "Specify walk type.\n\
 A ... adaptive walk\n\
 G ... gradient Walk\n\
-R ... random walk\n"
+R ... random walk\n\
+N ... neighbors only\n"
 string
-typestr="[A|G|R]"
+typestr="[A|G|R|N]"
 default="G"
 optional
 
