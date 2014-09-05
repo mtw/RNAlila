@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-09-04 17:06:34 mtw>
+  Last changed Time-stamp: <2014-09-05 15:12:28 mtw>
 */
 
 #include <stdio.h>
@@ -48,17 +48,18 @@ lila_generate_neighbors_pt(const char *seq,
     nb = (LilaDBE*)calloc(1,sizeof(LilaDBE));
     move_str m = mvs[i];
     int emove =  vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+    
     short int *ptbak = vrna_pt_copy(pt);
     lila_apply_move_pt(ptbak,m);
-    char *struc =  vrna_pt_to_db(ptbak);
+    char *struc =  lila_db_from_pt(ptbak);
     nb->structure = strdup(struc);
-    nb->energy = e + emove;
+    nb->energy = (float)(e + emove)/100;
     g_queue_push_tail(N,nb);
     free(ptbak);
     free(struc);
   }
+  free(mvs);
   return N;
-  // TODO free the gQueue in a separate function;
   // call lila_get_cc_pt for each neighbor
 }
 
@@ -584,12 +585,13 @@ lila_lexmin_cc(GList *c)
 
 /*
   Dump connected component array to stderr
+  SEE lila_output_dbe_queue in lila.c
 */
 void
 lila_dump_cc(GList *c)
 {
   /* fprintf(stderr,"[[lila_dump_cc]]::START\n"); */
-  g_list_foreach(c,(GFunc)lila_print_2se,NULL);
+  g_list_foreach(c,(GFunc)lila_print_dbe,NULL);
   /* fprintf(stderr,"[[lila_dump_cc]]::END\n");	  */ 
 }
 

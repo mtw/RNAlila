@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-09-04 12:28:48 mtw>
+  Last changed Time-stamp: <2014-09-05 15:07:37 mtw>
 */
 
 #include <stdio.h>
@@ -9,6 +9,8 @@
 #include <assert.h>
 #include <math.h>
 #include <lila.h>
+
+static void lila_free_dbe(void*);
 
 /* ==== */
 void 
@@ -192,11 +194,11 @@ lila_cmp_sse_lexen(const void *a,
   Dump one element of a Lila2seT list.
 */
 void
-lila_print_2se(gpointer data,
+lila_print_dbe(gpointer data,
 	       gpointer user_data)
 {
   Lila2seT *foo = (Lila2seT *)data;
-  fprintf(stderr,"%s (%6.4f) CC\n",foo->structure,foo->energy);
+  fprintf(stderr,"%s (%6.2f)\n",foo->structure,foo->energy);
 }
 
 /*
@@ -207,4 +209,34 @@ lila_free_cc(gpointer data)
 {
   Lila2seT *foo = (Lila2seT *)data;
   free(foo->structure);
+}
+
+
+/*
+  Output GQueue of LilaDBE elements
+*/
+void
+lila_output_dbe_queue(GQueue *Q)
+{
+  g_queue_foreach(Q,(GFunc)lila_print_dbe,NULL);
+}
+
+/*
+  Deallocate GQueue of LilaDBE elements
+ */
+void
+lila_dealloc_dbe_queue(GQueue *Q)
+{
+  g_queue_free_full(Q,lila_free_dbe);
+}
+
+/*
+  Free one element of type LillaDBE
+*/
+static void
+lila_free_dbe(void *data)
+{
+  LilaDBE *foo = (LilaDBE*)data;
+  free(foo->structure);
+  free(foo);
 }

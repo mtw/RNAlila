@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-09-04 16:59:08 mtw>
+  Last changed Time-stamp: <2014-09-05 15:01:44 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -69,7 +69,10 @@ int   lila_cmp_db(void *,void *);
 int   lila_cmp_sse_lex(const void *,const void *);
 int   lila_cmp_sse_en(const void *,const void *);
 int   lila_cmp_sse_lexen(const void *,const void *);
-void  lila_print_2se(gpointer,gpointer);
+void  lila_print_dbe(gpointer,gpointer);
 void  lila_free_cc(gpointer);
+
+void lila_dealloc_dbe_queue(GQueue *);
+
 
 #endif

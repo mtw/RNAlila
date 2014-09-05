@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-09-04 17:16:34 mtw>
+  Last changed Time-stamp: <2014-09-05 15:11:20 mtw>
 */
 
 #include <stdio.h>
@@ -83,6 +83,7 @@ main(int argc, char **argv)
   e = vrna_eval_structure_pt(lilass.sequence,pt,P);
   
   /* print Start structure */
+  printf ("%s\n",lilass.sequence);
   printf ("%s (%6.2f) S\n",lilass.structure, (float)e/100);
   
   walk();
@@ -197,21 +198,9 @@ walk (void)
   else if (local_opt.walktype == 'N'){
     /* printf ("computing neighbors only\n");*/
     GQueue *nb = NULL;
-    
     nb = lila_generate_neighbors_pt((const char *)lilass.sequence,pt);
-    
-    /* make a random move */
-    m = lila_gradient_move_pt(lilass.sequence,pt);
-    /* compute energy difference for this move */
-    emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
-    /* evaluate energy of the new structure */
-    enew = e + emove;
-    /* do the move */
-    lila_apply_move_pt(pt,m);
-    print_str(stdout,pt);
-    printf(" (%6.2f)\n", (float)enew/100);
-    e = enew;
-    len++;
+    lila_output_dbe_queue(nb);
+    lila_dealloc_dbe_queue(nb);
   }
   else {
     printf ("unknown walktype, exiting ...\n");
