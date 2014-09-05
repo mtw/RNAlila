@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-09-05 15:11:20 mtw>
+  Last changed Time-stamp: <2014-09-06 00:12:54 mtw>
 */
 
 #include <stdio.h>
@@ -12,6 +12,7 @@
 #include <math.h>
 #include "RNAlila/lila.h"
 #include "RNAlila/moves.h"
+#include "RNAlila/topology.h"
 #include "RNAwalk_cmdl.h"
 
 static void parse_infile(FILE *fp);
@@ -199,8 +200,9 @@ walk (void)
     /* printf ("computing neighbors only\n");*/
     GQueue *nb = NULL;
     nb = lila_generate_neighbors_pt((const char *)lilass.sequence,pt);
-    lila_output_dbe_queue(nb);
-    lila_dealloc_dbe_queue(nb);
+    // call lila_get_cc_pt for each neighbor
+    lila_output_dbe_gqueue(nb);
+    lila_dealloc_dbe_gqueue(nb);
   }
   else {
     printf ("unknown walktype, exiting ...\n");
@@ -298,18 +300,16 @@ AWmin(short int *pt)
   
     fprintf(stderr, "%s D\n",struc);
     conncomp = lila_get_cc_pt(lilass.sequence,pt,&ismin);
-    lila_dump_cc(conncomp);
+    lila_output_dbe_glist(conncomp);
     if (ismin == 1)
       fprintf(stderr, "MINIMUM COMPONENT\n");
     else
       fprintf(stderr, "SHOULDER COMPONENT\n");
-    f = lila_lexmin_cc(conncomp);
+    f = lila_lexmin_dbe_glist(conncomp);
     l = (Lila2seT *)f;
     g_hash_table_add(M,l->structure);
-    
-    lila_cc2hash(S,conncomp); /* add all elements of connected component to S */
-    
-    lila_cleanup_cc(conncomp);
+    g_list_foreach(conncomp,(GFunc)lila_dbe_structure2ghashtable,S);
+    lila_dealloc_dbe_glist(conncomp);
     fprintf(stderr,"---\n");
   }
   else{

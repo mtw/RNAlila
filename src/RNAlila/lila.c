@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-09-05 15:07:37 mtw>
+  Last changed Time-stamp: <2014-09-05 23:21:47 mtw>
 */
 
 #include <stdio.h>
@@ -9,8 +9,6 @@
 #include <assert.h>
 #include <math.h>
 #include <lila.h>
-
-static void lila_free_dbe(void*);
 
 /* ==== */
 void 
@@ -128,115 +126,42 @@ lila_basename(char *arg)
   return s;
 }
 
-/**/
-int
-lila_cmp_db(void *a,
-	    void *b)
-{
-  return strcmp(a,b);	
-}
-
 /*
-  Compare function for sseT (see lila.h); Compares (dot bracket)
-  structures lexicographically.
+  Convert pair table to dot bracket notation.
 */
-int
-lila_cmp_sse_lex(const void *a, const void *b)
+char *
+lila_db_from_pt(short int *pt)
 {
-  const Lila2seT *ma = a;
-  const Lila2seT *mb = b;
-
-  return strcmp(ma->structure,mb->structure);
+  int i;
+  char *db=NULL;
+  //fprintf(stderr,"[[lila_db_from_pt]]:\n");
+  //lila_dump_pt(pt);
+  if(pt){
+    db = (char*)calloc(pt[0]+1,sizeof(char));
+    for(i=1;i<=pt[0];i++){
+      if(*(pt+i)==0)
+	db[i-1] = '.';
+      else if (*(pt+i)<i)
+	db[i-1] = ')';
+      else
+	db[i-1] = '(';
+    }
+    db[i-1] = '\0';
+  }
+  //fprintf(stderr,"%s\n",db);
+  return db;
 }
 
 /*
-  Compare function for sseT (see lila.h); Compares energies.
-*/
-int
-lila_cmp_sse_en(const void *a,
-		const void *b)
-{
-  const Lila2seT *ma = a;
-  const Lila2seT *mb = b;
-
-  if (ma->energy > mb->energy)
-    return 1;
-  else if (ma->energy < mb->energy)
-    return -1;
-  else
-    return 0;
-}
-
-/*
-  Compare function for sseT (see lila.h); Compares first by energy,
-  then by lexicographical order of structure.
-*/
-int
-lila_cmp_sse_lexen(const void *a,
-		   const void *b)
-{
-  const Lila2seT *ma = a;
-  const Lila2seT *mb = b;
-
-  int comp = ma->energy - mb->energy;
-
-  if (comp < 0)
-    return -1;
-  
-  if (comp > 0)
-    return 1;
-  
-  comp = strcmp(ma->structure, mb->structure);
-  return comp;
-}
-
-/*
-  Dump one element of a Lila2seT list.
+  Dump a pair table
 */
 void
-lila_print_dbe(gpointer data,
-	       gpointer user_data)
+lila_dump_pt(const short *pairtable)
 {
-  Lila2seT *foo = (Lila2seT *)data;
-  fprintf(stderr,"%s (%6.2f)\n",foo->structure,foo->energy);
-}
-
-/*
-  Free space allocated for a Lils2seT
-*/
-void
-lila_free_cc(gpointer data)
-{
-  Lila2seT *foo = (Lila2seT *)data;
-  free(foo->structure);
-}
-
-
-/*
-  Output GQueue of LilaDBE elements
-*/
-void
-lila_output_dbe_queue(GQueue *Q)
-{
-  g_queue_foreach(Q,(GFunc)lila_print_dbe,NULL);
-}
-
-/*
-  Deallocate GQueue of LilaDBE elements
- */
-void
-lila_dealloc_dbe_queue(GQueue *Q)
-{
-  g_queue_free_full(Q,lila_free_dbe);
-}
-
-/*
-  Free one element of type LillaDBE
-*/
-static void
-lila_free_dbe(void *data)
-{
-  LilaDBE *foo = (LilaDBE*)data;
-  free(foo->structure);
-  free(foo);
+  int i;
+  printf("> ");
+  for (i=0;i<(*pairtable)+1;i++){
+    printf("%i ",*(pairtable+i));
+  }
+  printf("\n");
 }

@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-09-05 15:01:44 mtw>
+  Last changed Time-stamp: <2014-09-05 23:23:41 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -28,17 +28,16 @@ typedef struct _vRNAcommon {
   int noLP;
 } vRNAcommonT;
 
-typedef struct _lilass {
-  char *sequence;
-  char *structure;
-  int length;
-} lilassT;                 /* sequence, secondary structure and length */       
+typedef struct _lilass {  /* looks like this one is only used for */
+  char *sequence;         /* passing input sequence & structure */
+  char *structure;        /* throughout the library */
+  int length;             /* TODO: consolidate me !!! */
+} lilassT;                /* sequence, secondary structure and length */       
 
 typedef struct _lila2se {
   char *structure;
   float energy;
 } Lila2seT;                 /* secondary structure and energy */
-
 
 typedef Lila2seT LilaDBE;   /* dot bracket & energy */
 
@@ -65,14 +64,17 @@ void lila_set_vcd_options(const unsigned int temp_given,
 			  const int dangles_arg,
 			  const int noLP_flag);
 char *lila_db_from_pt(short int*);
-int   lila_cmp_db(void *,void *);
-int   lila_cmp_sse_lex(const void *,const void *);
-int   lila_cmp_sse_en(const void *,const void *);
-int   lila_cmp_sse_lexen(const void *,const void *);
-void  lila_print_dbe(gpointer,gpointer);
-void  lila_free_cc(gpointer);
+void lila_dump_pt(const short *);
 
-void lila_dealloc_dbe_queue(GQueue *);
-
+/* functions defined in ds_utils.c */
+int   lila_cmp_db(const void *,const void *);
+int   lila_cmp_dbe_lex(const void *,const void *);
+int   lila_cmp_dbe_en(const void *,const void *);
+int   lila_cmp_dbe_lexen(const void *,const void *);
+GList *lila_lexmin_dbe_glist(GList *c);
+void  lila_print_dbe(void *,void *);
+void  lila_dealloc_dbe_gqueue(GQueue *);
+void  lila_dealloc_dbe_glist(GList *);
+void  lila_dbe_structure2ghashtable(void *,void *);
 
 #endif
