@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-09-06 00:40:09 mtw>
+  Last changed Time-stamp: <2014-09-07 23:40:16 mtw>
 */
 
 #include <stdio.h>
@@ -14,8 +14,8 @@
 #define MINGAP 3
   
 static int lila_RNAlexicographicalOrder(const void *, const void *);
-inline int try_insert_seq2(const char*, int, int);
-inline int compat(const char, const char);
+static int try_insert_seq2(const char*, int, int);
+static int compat(const char, const char);
   
 typedef struct _nb {
   char *struc;
@@ -315,7 +315,7 @@ lila_construct_moves(const char *seq,
 }
 
 /*  try insert base pair (i,j) */
-inline int
+static int
 try_insert_seq2(const char *seq,
 	       int i,
 	       int j)
@@ -325,7 +325,7 @@ try_insert_seq2(const char *seq,
 }
 
 /* compatible base pair?*/
-inline int
+static int
 compat(const char a,
        const char b)
 {
