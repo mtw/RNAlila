@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2014-09-07 23:32:02 mtw>
+  Last changed Time-stamp: <2014-09-08 15:34:13 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -72,11 +72,13 @@ int   lila_cmp_dbe_lex(const void *,const void *);
 int   lila_cmp_dbe_en(const void *,const void *);
 int   lila_cmp_dbe_lexen(const void *,const void *);
 GList *lila_lexmin_dbe_glist(GList *);
-void  lila_output_dbe_gqueue(GQueue *);
-void  lila_output_dbe_glist(GList *);
+void  lila_output_dbe_gqueue(GQueue *,const char*);
+void  lila_output_dbe_glist(GList *,const char*);
 void  lila_print_dbe(void *,void *);
 void  lila_dealloc_dbe_gqueue(GQueue *);
 void  lila_dealloc_dbe_glist(GList *);
+void  lila_free_dbe(void *);
+void  lila_free_string(void *);
 void  lila_dbe_structure2ghashtable(void *,void *);
 
 #endif

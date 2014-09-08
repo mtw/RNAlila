@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-09-06 00:12:54 mtw>
+  Last changed Time-stamp: <2014-09-08 17:25:04 mtw>
 */
 
 #include <stdio.h>
@@ -150,8 +150,8 @@ walk (void)
       ini_AWmin();
       AWmin(pt);
       /* fprintf(stdout,"Minima:\n");*/
-      L = g_hash_table_get_keys(M);
-      g_list_foreach(L, dump_items, "struc %s\n");
+      /* L = g_hash_table_get_keys(M); */
+      /* g_list_foreach(L, dump_items, "struc %s\n"); */
       /* fprintf(stderr,"detroying hash M\n");*/
       g_hash_table_destroy(M);
       /* fprintf(stderr,"destroying hash S\n");*/
@@ -200,8 +200,27 @@ walk (void)
     /* printf ("computing neighbors only\n");*/
     GQueue *nb = NULL;
     nb = lila_generate_neighbors_pt((const char *)lilass.sequence,pt);
-    // call lila_get_cc_pt for each neighbor
-    lila_output_dbe_gqueue(nb);
+    lila_output_dbe_gqueue(nb, NULL);
+    fprintf(stderr,"=============\n");
+
+    
+    { 
+      LilaDBE *bar = NULL;
+      while ( (bar = (LilaDBE*)g_queue_pop_head(nb)) != NULL){
+	int min;
+	GList *gliste;
+	short int *pt = vrna_pt_get(bar->structure);
+	gliste = lila_get_cc_pt(lilass.sequence,pt,&min);
+	lila_output_dbe_glist(gliste, "CC");
+	lila_dealloc_dbe_glist(gliste);
+	free(pt);
+	fprintf(stderr,"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+	lila_free_dbe(bar);
+      }
+      
+    }
+    
+    
     lila_dealloc_dbe_gqueue(nb);
   }
   else {
@@ -234,7 +253,7 @@ ini_AWmin(void)
   /* initialize S as glib hash. S is a key==value type hash containing
      just secondary structures in dot bracket notation */
   S = g_hash_table_new_full(g_str_hash,g_str_equal,free_key,NULL);
-   //S = g_hash_table_new(g_str_hash,g_str_equal);
+  //S = g_hash_table_new(g_str_hash,g_str_equal);
   /* initialize list of local minima M */
   M = g_hash_table_new(g_str_hash,g_str_equal);  
 }
@@ -294,20 +313,21 @@ AWmin(short int *pt)
   else if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == -1) {
     /* it's a degenerate minimum or a shoulder */
     GList *f,*conncomp;
-    Lila2seT *l = NULL;
+    LilaDBE *l = NULL;
     char *lexmin = NULL;
     int ismin;
   
     fprintf(stderr, "%s D\n",struc);
     conncomp = lila_get_cc_pt(lilass.sequence,pt,&ismin);
-    lila_output_dbe_glist(conncomp);
+    lila_output_dbe_glist(conncomp, "CC");
     if (ismin == 1)
       fprintf(stderr, "MINIMUM COMPONENT\n");
     else
       fprintf(stderr, "SHOULDER COMPONENT\n");
     f = lila_lexmin_dbe_glist(conncomp);
-    l = (Lila2seT *)f;
-    g_hash_table_add(M,l->structure);
+    l = (LilaDBE *)f;
+    lexmin = strdup(l->structure);
+    g_hash_table_add(M,lexmin);
     g_list_foreach(conncomp,(GFunc)lila_dbe_structure2ghashtable,S);
     lila_dealloc_dbe_glist(conncomp);
     fprintf(stderr,"---\n");

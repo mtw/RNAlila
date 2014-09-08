@@ -1,6 +1,6 @@
 /*
   ds_utils.c: RNAlila data structure utility functions
-  Last changed Time-stamp: <2014-09-05 23:17:28 mtw>
+  Last changed Time-stamp: <2014-09-08 17:08:20 mtw>
 */
 
 #include <stdio.h>
@@ -9,8 +9,6 @@
 #include <assert.h>
 #include <math.h>
 #include <lila.h>
-
-static void lila_free_dbe(void*);
 
 /*
   Compare function for two strings.
@@ -94,28 +92,31 @@ lila_lexmin_dbe_glist(GList *c)
 */
 void
 lila_print_dbe(void *data,
-		 void *user_data)
+	       void *user_data)
 {
   LilaDBE *foo = (LilaDBE *)data;
-  fprintf(stderr,"%s (%6.2f)\n",foo->structure,foo->energy);
+  fprintf(stderr,"%s (%6.2f) ",foo->structure,foo->energy);
+  if(user_data != NULL)
+    fprintf(stderr,"%s ",user_data);
+  fprintf(stderr,"\n");
 }
 
 /*
   Output entire GQueue of LilaDBE elements.
 */
 void
-lila_output_dbe_gqueue(GQueue *Q)
+lila_output_dbe_gqueue(GQueue *Q, const char *userdata)
 {
-  g_queue_foreach(Q,(GFunc)lila_print_dbe,NULL);
+  g_queue_foreach(Q,(GFunc)lila_print_dbe, (char*)userdata);
 }
 
 /*
   Output entire GList of LilaDBE elements.
 */
 void
-lila_output_dbe_glist(GList *L)
+lila_output_dbe_glist(GList *L, const char* userdata)
 {
-g_list_foreach(L,(GFunc)lila_print_dbe,NULL);
+  g_list_foreach(L,(GFunc)lila_print_dbe, (char*)userdata);
 }
 
 /*
@@ -124,11 +125,11 @@ g_list_foreach(L,(GFunc)lila_print_dbe,NULL);
 void
 lila_dealloc_dbe_gqueue(GQueue *Q)
 {
-g_queue_free_full(Q,(GDestroyNotify)lila_free_dbe);
+  g_queue_free_full(Q,(GDestroyNotify)lila_free_dbe);
 }
 
 /*
-   Deallocate GList of LilaDBE elements
+  Deallocate GList of LilaDBE elements
 */
 void
 lila_dealloc_dbe_glist(GList *L)
@@ -139,7 +140,7 @@ lila_dealloc_dbe_glist(GList *L)
 /*
   Free one element of type LilaDBE
 */
-static void
+void
 lila_free_dbe(void *data)
 {
   LilaDBE *foo = (LilaDBE*)data;
@@ -148,11 +149,21 @@ lila_free_dbe(void *data)
 }
 
 /*
+  Free one string
+*/
+void
+lila_free_string(void *data)
+{
+  char *foo = (char*)data;
+  free(foo);
+}
+
+/*
   Add a LilaDBE 'structure' element into a GHashTable
 */
 void
 lila_dbe_structure2ghashtable(void *data,
-				void *user_data)
+			      void *user_data)
 {
   LilaDBE *foo = (LilaDBE *)data;
   GHashTable *S = (GHashTable *)user_data;
