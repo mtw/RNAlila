@@ -4,10 +4,12 @@ pkginclude_HEADERS = 	lila.h \
 			moves.h\
 			topology.h
 
-libRNAlila_a_SOURCES = 	lila.c \
+libRNAlila_a_SOURCES = 	io.c \
+			lila.c \
 			ds_utils.c \
 			moves.c\
-			topology.c
+			topology.c\
+			ranstrucS.c
 
 
 AM_CFLAGS =  ${Glib2_CFLAGS} ${GSL_CFLAGS} ${ViennaRNA_CFLAGS} -g3 -O0

@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2014-09-05 23:21:47 mtw>
+  Last changed Time-stamp: <2015-02-04 17:17:44 mtw>
 */
 
 #include <stdio.h>
@@ -83,31 +83,6 @@ lila_set_vcd_options(const unsigned int temp_given,
     vcd.noLP = noLP_flag; /* 0 or 1 */
     vrna_md_set_nolp(&md,vcd.noLP);
   }
-}
-
-
-/**/
-/* TODO: implement lila_parse_seq_struc(FILE *fp) in rnalila/io.c */
-void
-lila_parse_seq_struc(FILE *fp)
-{
-  char *line=NULL;
-  
-  line = get_line(fp);
-  /* skip comment lines */
-  while ((*line == '*')||(*line == '\0')||(*line == '>')) {
-    free(line);
-    line = get_line(fp);
-  }
-  lilass.sequence  = (char *) calloc (strlen(line)+1, sizeof(char));
-  lilass.structure = (char *) calloc (strlen(line)+1, sizeof(char));
-  assert(lilass.sequence != NULL); assert(lilass.structure != NULL);
-  sscanf(line, "%s", lilass.sequence);
-  free (line);
-  line = get_line(fp);
-  sscanf(line, "%s", lilass.structure);
-  free (line);
-  lilass.length = strlen(lilass.sequence);
 }
 
 /**/

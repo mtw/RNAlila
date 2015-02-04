@@ -1,11 +1,12 @@
-bin_PROGRAMS = RNAwalk
+bin_PROGRAMS = RNAwalk RNArandstruc
 
 LDADD = $(top_srcdir)/src/RNAlila/libRNAlila.a ${ViennaRNA_LIBS} ${Glib2_LIBS}
 
 AM_CFLAGS =  ${Glib2_CFLAGS} ${GSL_CFLAGS} ${ViennaRNA_CFLAGS}
 AM_CPPFLAGS = -I$(top_srcdir)/src  ${Glib2_LIBS} -I${includedir} -I.
 
-GENGETOPT_CMDL =  RNAwalk_cmdl.c RNAfold_cmdl.h
+GENGETOPT_CMDL =  RNAwalk_cmdl.c RNAfold_cmdl.h\
+			RNArandstruc_cmdl.c RNArandstruc_cmdl.h
 
 GENGETOPT_FILES =  RNAwalk.ggo
 
@@ -22,4 +23,11 @@ RNAwalk_cmdl.h  RNAwalk_cmdl.c: RNAwalk.ggo
 	$(AM_V_GEN)gengetopt -i RNAwalk.ggo
 
 RNAwalk_SOURCES=RNAwalk_cmdl.c RNAwalk.c
+
+RNArandstruc.c:		RNArandstruc_cmdl.h
+
+RNArandstruc_cmdl.h RNArandstruc_cmdl.c: RNArandstruc.ggo
+	$(AM_V_GEN)gengetopt -i RNArandstruc.ggo
+
+RNArandstruc_SOURCES=RNArandstruc_cmdl.c RNArandstruc.c
 
