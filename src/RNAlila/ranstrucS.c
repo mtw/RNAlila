@@ -1,18 +1,15 @@
 /* ranstrucS.c */
 /* count the number of secondary structures compatible with an RNA sequence */
 /* and produce random structures compatible with the sequence */
-/* Last changed Time-stamp: <2015-02-04 18:21:52 mtw> */
+/* Last changed Time-stamp: <2015-02-05 16:29:59 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include "ViennaRNA/pair_mat.h"
+#include <lila.h>
 
-/* RNA package variables used in pair_mat.h */
-
-#define PRIVATE static
 #define MAXLENGTH 500
 #define TURN 3
 
@@ -23,7 +20,7 @@ void       count(void);
 extern double      drand48();
 
 short *S = NULL;
-double **P = NULL;
+double **Q = NULL;
 double *PP = NULL;
 
 int Nmax;
@@ -41,14 +38,14 @@ count()
   int i,j,n,k;
 
   for (i=1; i<=length; i++)
-    P[i][i-1] = 1;
+    Q[i][i-1] = 1;
 
   for (i=length; i>0; i--)
     for (j=i; j<=length; j++) {
-      P[i][j] = P[i][j-1];
+      Q[i][j] = Q[i][j-1];
       for (k=i; k<=j-TURN-1; k++)
-	if (pair[S[k]][S[j]])
-	  P[i][j] += P[i][k-1]*P[k+1][j-1];
+	if (md.pair[s0[k]][s0[j]])
+	  Q[i][j] += Q[i][k-1]*Q[k+1][j-1];
     }
 }
 
@@ -82,16 +79,16 @@ random_struc(int n)
       psi=0;
       continue;
     }
-    r = (drand48()*P[i][j]);
-    if (r<P[i+1][j]) {
+    r = (drand48()*Q[i][j]);
+    if (r<Q[i+1][j]) {
       struc[i-1]='.';
       i++;
     } else {
       struc[i-1]='(';
-      SS=P[i+1][j];
+      SS=Q[i+1][j];
       for (k=i+TURN; k+1<j; k++) { /* pair i with k+1 */
-	if (pair[S[i]][S[k+1]]) {
-	  SS += P[i+1][k]*P[k+2][j];
+	if (md.pair[s0[i]][s0[k+1]]) {
+	  SS += Q[i+1][k]*Q[k+2][j];
 	  if (r<SS) break;
 	}
       }
@@ -135,18 +132,13 @@ lila_random_structureS(char *seq)
   int i, display = 0;
   int count_only=0;
   char *line;
-  // make_pair_matrix();
 
   length = strlen(seq);
-  S = (short *) calloc(sizeof(short),length+1);
-
-  for (i=1; i<=length; i++)  //make numerical encoding of sequence
-    S[i] = ENCODE(seq[i-1]);
-
-  P = (double **) calloc(sizeof(double *), length+1);
+  
+  Q = (double **) calloc(sizeof(double *), length+1);
   for (i=0; i<=length; i++) {
-    P[i] = (double *) calloc(sizeof(double), length+1);
-    if (!P[i]){
+    Q[i] = (double *) calloc(sizeof(double), length+1);
+    if (!Q[i]){
       fprintf(stderr, "Out of memory\n");
       exit (EXIT_FAILURE);
     }
@@ -156,12 +148,12 @@ lila_random_structureS(char *seq)
   if (count_only) {
     s=random_struc(length);
     for (i=1; i<=length; i++) {
-      printf("%3d %g\n", i, P[1][i]);
+      printf("%3d %g\n", i, Q[1][i]);
     }
     free(s);
     return 0;
   }
-  fprintf(stderr, "%g structures\n", P[1][length]);
+  fprintf(stderr, "%g structures\n", Q[1][length]);
 
   srand48(time(NULL));
 

@@ -1,6 +1,6 @@
 /*
   RNArandstruc.c
-  Last changed Time-stamp: <2015-02-04 18:23:30 mtw>
+  Last changed Time-stamp: <2015-02-05 16:29:08 mtw>
 */
 
 #include <stdio.h>
@@ -38,7 +38,7 @@ struct RNArandstruc_args_info args_info;
 int
 main(int argc, char **argv)
 {
-  int e;
+  int e,i;
   float mfe;
   double erange;
   
@@ -73,8 +73,9 @@ main(int argc, char **argv)
   /* print Start structure */
   printf ("%s\n",lilass.sequence);
   //printf ("%s (%6.2f) S\n",lilass.structure, (float)e/100);
-  
-  lila_random_structureS(lilass.sequence);
+
+  for (i=0;i<local_opt.number;i++)
+    lila_random_structureS(lilass.sequence);
 
   RNArandstruc_memoryCleanup();
   
@@ -101,7 +102,7 @@ process_app_options(int argc, char **argv)
 {
   /* initialize local options */
   local_opt.input      = NULL;
-  local_opt.number     = 10;
+  local_opt.number     = 1;
 
   /* parse command line, overweite local options */
   if (RNArandstruc_cmdline_parser (argc, argv, &args_info) != 0){
