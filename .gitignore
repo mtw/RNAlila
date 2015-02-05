@@ -10,6 +10,9 @@ src/RNAlila/*.c~
 src/RNAlila/*.h~
 src/bin/RNAwalk_cmdl.c
 src/bin/RNAwalk_cmdl.h
+src/bin/RNArandstruc
+src/bin/RNArandstruc_cmdl.c
+src/bin/RNArandstruc_cmdl.h
 src/bin/*#
 src/bin/RNAwalk
 a.out
