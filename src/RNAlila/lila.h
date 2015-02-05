@@ -32,7 +32,7 @@ typedef struct _lilass {  /* looks like this one is only used for */
   char *sequence;         /* passing input sequence & structure */
   char *structure;        /* throughout the library */
   int length;             /* TODO: consolidate me !!! */
-} lilassT;                /* sequence, secondary structure and length */       
+} lilassT;                /* sequence, secondary structure and length */
 
 typedef struct _lila2se {
   char *structure;
@@ -51,8 +51,9 @@ lilassT lilass;          /* start sequence && start structure */
 
 /* functions */
 char *lila_basename(char *);
-void lila_parse_seq_struc(FILE *fp);
-void lila_ini_vRNA(const char *seq);
+void lila_parse_seq_struc(FILE *);
+void lila_parse_sequence(FILE *);
+void lila_ini_vRNA(const char *);
 void lila_vRNA_cleanup(void);
 void lila_ini_vcd_options(void);
 void lila_set_vcd_options(const unsigned int temp_given,
@@ -65,6 +66,7 @@ void lila_set_vcd_options(const unsigned int temp_given,
 			  const int noLP_flag);
 char *lila_db_from_pt(short int*);
 void lila_dump_pt(const short *);
+int lila_random_structureS(char *);
 
 /* functions defined in ds_utils.c */
 int   lila_cmp_db(const void *,const void *);
