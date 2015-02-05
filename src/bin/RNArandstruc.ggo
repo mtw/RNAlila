@@ -1,0 +1,53 @@
+package "RNArandstruc"
+
+purpose "Compute random RNA secondary structures that are uniformly distributed over the conformation space"
+
+args "--file-name=RNArandstruc_cmdl --unamed-opts --default-optional --func-name=RNArandstruc_cmdline_parser --arg-struct-name=RNArandstruc_args_info"
+
+option "number" n 
+"Specify the number of random structures to generate.\n"
+int
+default="10" 
+optional
+
+section "ViennaRNA-specific options"
+sectiondesc="The options below directly influence the folding and energy
+evaluation by the ViennaRNA routines.\n\n"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C.\n"
+double
+default="37"
+optional
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices\ 
+in free ends and multi-loops\n"
+int
+default="2"
+optional
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+flag
+off
+
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors.\n"
+double
+default="1."
+optional
+hidden
+
+option "verbose" v  
+"Verbose output\n" 
+flag 
+off
+
+option "debug" - 
+"Debugging output\n" 
+flag 
+off
+
+
+
