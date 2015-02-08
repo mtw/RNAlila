@@ -1,14 +1,34 @@
 /* ranstrucS.c */
 /* count the number of secondary structures compatible with an RNA sequence */
 /* and produce random structures compatible with the sequence */
-/* Last changed Time-stamp: <2015-02-08 22:46:56 mtw> */
+/* Last changed Time-stamp: <2015-02-08 23:24:11 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <errno.h>
 #include <lila.h>
+
+#include <gsl/gsl_rng.h>
+#ifdef __MACH__
+#include <mach/mach_time.h>
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 0
+int clock_gettime(int clk_id, struct timespec *t){
+    mach_timebase_info_data_t timebase;
+    mach_timebase_info(&timebase);
+    uint64_t time;
+    time = mach_absolute_time();
+    double nseconds = ((double)time * (double)timebase.numer)/((double)timebase.denom);
+    double seconds = ((double)time * (double)timebase.numer)/((double)timebase.denom * 1e9);
+    t->tv_sec = seconds;
+    t->tv_nsec = nseconds;
+    return 0;
+}
+#else
+#include <time.h>
+#endif
+
 
 #define MAXLENGTH 500
 #define TURN 3
@@ -26,9 +46,13 @@ double *PP = NULL;
 int Nmax;
 unsigned short xsubi[3];
 
-
 char *seq, *s;
 int length, n_of_structs=1;
+
+static unsigned long seed;    /* random seed */
+static gsl_rng *rng = NULL;     /* GSL random number generator */
+static struct timespec ts;    /* timespec struct for random seed */
+static double rnum;           /* random number */
 
 /**/
 void
@@ -79,7 +103,9 @@ random_struc(int n)
       psi=0;
       continue;
     }
-    r = (drand48()*Q[i][j]);
+    rnum =  gsl_rng_uniform (rng);
+    // printf(" >> rnum = %6.4g\n",rnum);
+    r = (rnum*Q[i][j]);
     if (r<Q[i+1][j]) {
       struc[i-1]='.';
       i++;
@@ -124,14 +150,27 @@ lila_random_structureS(char *seq)
     }
   }
 
-  srand48(time(NULL));
+  /* prepare gsl random-number generation */
+  (void) clock_gettime(CLOCK_REALTIME, &ts);
+  //if(wanglandau_opt.seed_given){
+  //  seed = wanglandau_opt.seed;
+  //}
+  //else {
+  seed =   ts.tv_sec ^ ts.tv_nsec;
+    //}
+  //fprintf(stderr, "initializing random seed: %d\n",seed);
+  gsl_rng_env_setup();
+  rng = gsl_rng_alloc (gsl_rng_mt19937);
+  gsl_rng_set( rng, seed );
+  /* end gsl */
 
   s=random_struc(length);
 
   for (i=0;i<=length;i++)
     free (Q[i]);
   free(Q);
-    
+
+  gsl_rng_free(rng);
   return s;  
 }
 
