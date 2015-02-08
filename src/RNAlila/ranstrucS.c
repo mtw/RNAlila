@@ -1,7 +1,7 @@
 /* ranstrucS.c */
 /* count the number of secondary structures compatible with an RNA sequence */
 /* and produce random structures compatible with the sequence */
-/* Last changed Time-stamp: <2015-02-05 16:29:59 mtw> */
+/* Last changed Time-stamp: <2015-02-08 22:46:56 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,33 +106,13 @@ random_struc(int n)
 }
 
 /**/
-void
-b2d(char *s)
-{
-   int i,j,o;
-   char ch='A';
-
-   for (i=0; i<strlen(s); i++) {
-      if (s[i]=='.') s[i]=' ';
-      if (s[i]=='(') {
-	 for (o=1, j=i+1; o>0; j++) {
-	    if (s[j]==')') o--;
-	    if (s[j]=='(')o++;
-	 }
-	 if ((s[i-1]!=ch)||(s[j]!=ch)) ch++;
-	 s[--j]=s[i]=ch;
-      }
-   }
-}
-
-/**/
-int
+char *
 lila_random_structureS(char *seq)
 {
   int i, display = 0;
   int count_only=0;
   char *line;
-
+  
   length = strlen(seq);
   
   Q = (double **) calloc(sizeof(double *), length+1);
@@ -143,27 +123,16 @@ lila_random_structureS(char *seq)
       exit (EXIT_FAILURE);
     }
   }
-  count();
-
-  if (count_only) {
-    s=random_struc(length);
-    for (i=1; i<=length; i++) {
-      printf("%3d %g\n", i, Q[1][i]);
-    }
-    free(s);
-    return 0;
-  }
-  fprintf(stderr, "%g structures\n", Q[1][length]);
 
   srand48(time(NULL));
 
-  for (i=0; i<n_of_structs; i++) {
-    s=random_struc(length);
-    if (display) b2d(s);
-    printf("%s\n",s);
-    free(s);
-  }
-  return 0;  
+  s=random_struc(length);
+
+  for (i=0;i<=length;i++)
+    free (Q[i]);
+  free(Q);
+    
+  return s;  
 }
 
 

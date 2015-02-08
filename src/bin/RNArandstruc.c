@@ -1,6 +1,6 @@
 /*
   RNArandstruc.c
-  Last changed Time-stamp: <2015-02-05 16:29:08 mtw>
+  Last changed Time-stamp: <2015-02-08 22:50:08 mtw>
 */
 
 #include <stdio.h>
@@ -38,9 +38,9 @@ struct RNArandstruc_args_info args_info;
 int
 main(int argc, char **argv)
 {
-  int e,i;
-  float mfe;
-  double erange;
+  int i;
+  char *form = NULL;
+  float e;
   
   /* initialize ViennaRNA common options */
   lila_ini_vcd_options();
@@ -64,26 +64,24 @@ main(int argc, char **argv)
 		       args_info.dangles_arg,
 		       args_info.noLP_flag); 
   lila_ini_vRNA(lilass.sequence);
-  srand(time(NULL));
+  //srand(time(NULL));
 
-  
-  //pt = vrna_pt_get(lilass.structure);
-  //e = vrna_eval_structure_pt(lilass.sequence,pt,P);
-  
-  /* print Start structure */
   printf ("%s\n",lilass.sequence);
-  //printf ("%s (%6.2f) S\n",lilass.structure, (float)e/100);
+  
+  for (i=0;i<local_opt.number;i++){
+    form = lila_random_structureS(lilass.sequence);
+    e=vrna_eval_structure(lilass.sequence,form,P);
+    printf ("%s (%6.2f)\n",form, e);
+  }
 
-  for (i=0;i<local_opt.number;i++)
-    lila_random_structureS(lilass.sequence);
-
+  
   RNArandstruc_memoryCleanup();
   
   /* free ViennaRNA data */
   lila_vRNA_cleanup();
   
   free(pt);
-  
+  free(form);
   return 0;
 }
   
