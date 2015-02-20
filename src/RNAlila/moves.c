@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2014-09-07 23:40:16 mtw>
+  Last changed Time-stamp: <2015-02-19 20:38:08 mtw>
 */
 
 #include <stdio.h>
@@ -80,23 +80,28 @@ lila_random_move_pt(const char *seq,
   Get gradient (steepest descent) move operation to lexicographically
   smallest neighbor on a pair table. Returns move operations to be
   applied to pt in order to perform the move
+  CAN WE DO THAT WITH lila_generate_neighbors_pt ??????????????
 */
 move_str
-lila_gradient_move_pt(const char *seq, short int *pt)
+lila_gradient_move_pt(const char *seq,
+		      short int *pt)
 {
   move_str r,*mvs=NULL;
   int emove,count,i,k=0,mindiff=100000;
-  int max_neighbours;
   nbT *neighbours = NULL;
   
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   neighbours = (nbT*)calloc(count+1,sizeof(nbT));
   
+  
   for(i=0;i<count;i++) {
     neighbours[i].ediff = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
-    /* seems we're storing the same pt here sinde the move is not applied */
-    neighbours[i].struc = vrna_pt_to_db(pt); 
+    /* do the move now on the pair table */
+    short int *ptbak = vrna_pt_copy(pt);
+    lila_apply_move_pt(ptbak,mvs[i]);
+    neighbours[i].struc = vrna_pt_to_db(ptbak); 
     neighbours[i].n = i;
+    free(ptbak);
   }
   qsort(neighbours, count, sizeof(nbT), lila_RNAlexicographicalOrder);
   

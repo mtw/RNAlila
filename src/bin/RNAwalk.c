@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2014-09-08 17:25:04 mtw>
+  Last changed Time-stamp: <2015-02-20 12:00:06 mtw>
 */
 
 #include <stdio.h>
@@ -23,7 +23,7 @@ static void AWmin(short int *);
 static void AWmin_memoryCleanup(void);
 static void dump_items(gpointer data,  gpointer user_data);
 static void free_key(gpointer data);
-static void walk(void);
+static void walk(int);
 
 typedef struct _rnawalk {
   FILE *input;            /* file pointer to input */
@@ -40,7 +40,7 @@ struct RNAwalk_args_info args_info;
 int
 main(int argc, char **argv)
 {
-  int e;
+  int energy;
   float mfe;
   double erange;
   
@@ -81,13 +81,14 @@ main(int argc, char **argv)
   */
   
   pt = vrna_pt_get(lilass.structure);
-  e = vrna_eval_structure_pt(lilass.sequence,pt,P);
+  energy = vrna_eval_structure_pt(lilass.sequence,pt,P);
+  //float e2 = vrna_eval_structure(lilass.sequence,lilass.structure,P);
   
-  /* print Start structure */
+  /* print start structure */
   printf ("%s\n",lilass.sequence);
-  printf ("%s (%6.2f) S\n",lilass.structure, (float)e/100);
+  printf ("%s (%6.2f) S\n",lilass.structure, (float)energy/100);
   
-  walk();
+  walk(energy);
 
   RNAwalk_memoryCleanup();
   
@@ -101,10 +102,9 @@ main(int argc, char **argv)
   
 
 static void
-walk (void)
+walk (int e)
 {
-  int e,enew,emove;
-  int len = 0;
+  int enew,emove,ismin,len = 0;
   move_str m;
   
   if(local_opt.walktype == 'R'){
@@ -127,7 +127,10 @@ walk (void)
   else if (local_opt.walktype == 'G'){
     /* printf ("performing gradient walk\n");*/
     while(len<local_opt.walklen){
-      /* make a random move */
+      char status[] = "x";
+      /* backup current structure */
+      short int *ptbak = vrna_pt_copy(pt);
+      /* return gradient move */
       m = lila_gradient_move_pt(lilass.sequence,pt);
       /* compute energy difference for this move */
       emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
@@ -135,15 +138,36 @@ walk (void)
       enew = e + emove;
       /* do the move */
       lila_apply_move_pt(pt,m);
+      if (emove > 0.){
+	break;
+      }
+      else {
+	if (memcmp(ptbak,pt,sizeof(short int)*(lilass.length+1)) == 0){
+	  fprintf(stderr,"gradient walk ended in same structure, finishing\n");
+	  break;
+	}
+      }
+      
+      {
+	/* validate topological status: transient or minimum?  NOTE:
+	   this is expensive since ALL neighbors are re-generated and
+	   re-evaluated */
+	ismin = lila_is_minimum_or_shoulder_pt(lilass.sequence,pt);
+	if (ismin == 1)
+	  status[0]='*';
+	else if (ismin == 0)
+	  status[0]='T';
+	else
+	  status[0]='D';
+      }
+      
       print_str(stdout,pt);
-      printf(" (%6.2f)\n", (float)enew/100);
+      printf(" (%6.2f) %s\n", (float)enew/100, status);
       e = enew;
       len++;
     }
   }
   else if (local_opt.walktype == 'A'){
-    int ismin;
-    
     if(local_opt.awmin==true) {
       GList *L=NULL;
       /* printf ("performing AWmin\n");*/
@@ -189,8 +213,9 @@ walk (void)
 	  else
 	    status[0]='D';
 	}
+	
 	print_str(stdout,pt);
-	printf(" (%6.2f) %s\n", (float)enew/100,status);
+	printf(" (%6.2f) %s\n", (float)enew/100, status);
 	e = enew;
 	len++;
       }
