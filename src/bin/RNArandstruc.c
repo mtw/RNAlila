@@ -71,7 +71,7 @@ main(int argc, char **argv)
   for (i=0;i<local_opt.number;i++){
     form = lila_random_structureS(lilass.sequence);
     e=vrna_eval_structure(lilass.sequence,form,P);
-    printf ("%s (%6.2f)\n",form, e);
+    printf ("%s %6.2f\n",form, e);
   }
 
   

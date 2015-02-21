@@ -75,7 +75,7 @@ main(int argc, char **argv)
     char *ss=(char*)calloc((strlen(lilass.sequence)+1),sizeof(char));
     mfe = vrna_fold(vc,ss);
     vrna_free_fold_compound(vc);
-    printf ("%s (%6.2f)\n",ss,mfe);
+    printf ("%s %6.2f\n",ss,mfe);
     free(ss);
     }
   */
@@ -86,7 +86,7 @@ main(int argc, char **argv)
   
   /* print start structure */
   printf ("%s\n",lilass.sequence);
-  printf ("%s (%6.2f) S\n",lilass.structure, (float)energy/100);
+  printf ("%s %6.2f S\n",lilass.structure, (float)energy/100);
   
   walk(energy);
 
@@ -119,7 +119,7 @@ walk (int e)
       /* do the move */
       lila_apply_move_pt(pt,m);
       print_str(stdout,pt);
-      printf(" (%6.2f)\n", (float)enew/100);
+      printf(" %6.2f\n", (float)enew/100);
       e = enew;
       len++;
     }
@@ -162,7 +162,7 @@ walk (int e)
       }
       
       print_str(stdout,pt);
-      printf(" (%6.2f) %s\n", (float)enew/100, status);
+      printf(" %6.2f %s\n", (float)enew/100, status);
       e = enew;
       len++;
     }
@@ -215,7 +215,7 @@ walk (int e)
 	}
 	
 	print_str(stdout,pt);
-	printf(" (%6.2f) %s\n", (float)enew/100, status);
+	printf(" %6.2f %s\n", (float)enew/100, status);
 	e = enew;
 	len++;
       }
@@ -260,7 +260,7 @@ dump_items(gpointer data, gpointer user_data)
   float energy;
   char *structure = (char*)data;
   energy = vrna_eval_structure(lilass.sequence, structure,P);
-  fprintf(stdout,"%s (%6.2f)\n", structure, energy);
+  fprintf(stdout,"%s %6.2f\n", structure, energy);
 }
 
 static void
@@ -326,7 +326,7 @@ AWmin(short int *pt)
       int e;
       e = vrna_eval_structure_pt(lilass.sequence,pt,P);
       /* add struc to the list of minima */
-      /* fprintf(stderr,"M %s (%6.2f) ADDED TO MINIMA\n",struc,(float)e/100); */
+      /* fprintf(stderr,"M %s %6.2f ADDED TO MINIMA\n",struc,(float)e/100); */
       g_hash_table_add(M,struc);
     }
     else{
