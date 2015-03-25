@@ -3,7 +3,7 @@
   Last changed Time-stamp: <2015-02-04 17:17:44 mtw>
 */
 
-#include <stdio.h>
+#include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -24,7 +24,7 @@ lila_ini_vcd_options(void)
 void
 lila_ini_vRNA (const char *seq)
 {
-  P  = vrna_get_energy_contributions(md);
+  P  = vrna_params_get(&md);
   vc = vrna_get_fold_compound(seq, &md,VRNA_OPTION_MFE);
   s0 = vrna_seq_encode_simple(seq,&(P->model_details));
   s1 = vrna_seq_encode(seq,&(P->model_details));

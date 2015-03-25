@@ -81,7 +81,8 @@ main(int argc, char **argv)
   */
   
   pt = vrna_pt_get(lilass.structure);
-  energy = vrna_eval_structure_pt(lilass.sequence,pt,P);
+  energy = vrna_eval_structure_pt(vc,pt); 
+  // this could be done directly via vrna_eval_structure_simple
   //float e2 = vrna_eval_structure(lilass.sequence,lilass.structure,P);
   
   /* print start structure */
@@ -113,7 +114,7 @@ walk (int e)
       /* make a random move */
       m = lila_random_move_pt(lilass.sequence,pt);
       /* compute energy difference for this move */
-      emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+      emove = vrna_eval_move_pt(vc,pt,m.left,m.right);
       /* evaluate energy of the new structure */
       enew = e + emove;
       /* do the move */
@@ -133,7 +134,7 @@ walk (int e)
       /* return gradient move */
       m = lila_gradient_move_pt(lilass.sequence,pt);
       /* compute energy difference for this move */
-      emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+      emove = vrna_eval_move_pt(vc,pt,m.left,m.right);
       /* evaluate energy of the new structure */
       enew = e + emove;
       /* do the move */
@@ -195,7 +196,7 @@ walk (int e)
 	  break;
 	}
 	/* compute energy difference for this move */
-	emove = vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+	emove = vrna_eval_move_pt(vc,pt,m.left,m.right);
 	/* evaluate energy of the new structure */
 	enew = e + emove;
 	/* do the move */
@@ -259,7 +260,7 @@ dump_items(gpointer data, gpointer user_data)
 {
   float energy;
   char *structure = (char*)data;
-  energy = vrna_eval_structure(lilass.sequence, structure,P);
+  energy = vrna_eval_structure(vc,structure);
   fprintf(stdout,"%s %6.2f\n", structure, energy);
 }
 
@@ -324,7 +325,7 @@ AWmin(short int *pt)
     if (lila_is_minimum_or_shoulder_pt(lilass.sequence,pt) == 1){
       /* it's a true minimun */
       int e;
-      e = vrna_eval_structure_pt(lilass.sequence,pt,P);
+      e = vrna_eval_structure_pt(vc,pt);
       /* add struc to the list of minima */
       /* fprintf(stderr,"M %s %6.2f ADDED TO MINIMA\n",struc,(float)e/100); */
       g_hash_table_add(M,struc);

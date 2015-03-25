@@ -42,8 +42,8 @@ typedef struct _lila2se {
 typedef Lila2seT LilaDBE;   /* dot bracket & energy */
 
 /* variables */
-paramT *P;
-model_detailsT md;
+vrna_param_t *P;
+vrna_md_t md;
 vrna_fold_compound *vc;
 short int *pt,*s0,*s1;
 vRNAcommonT vcd;         /* ViennaRNA common (model) details */

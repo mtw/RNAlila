@@ -36,14 +36,14 @@ lila_generate_neighbors_pt(const char *seq,
   move_str r,*mvs=NULL;
 
   GQueue *N = g_queue_new();
-  e = vrna_eval_structure_pt(seq,pt,P);
+  e = vrna_eval_structure_pt(vc,pt);
   count = lila_construct_moves(seq,pt,1,&mvs);
 
   for(i=0;i<count;i++) {
     LilaDBE *nb = NULL;
     nb = (LilaDBE*)calloc(1,sizeof(LilaDBE));
     move_str m = mvs[i];
-    int emove =  vrna_eval_move_pt(pt,s0,s1,m.left,m.right,P);
+    int emove =  vrna_eval_move_pt(vc,pt,m.left,m.right);
     
     short int *ptbak = vrna_pt_copy(pt);
     lila_apply_move_pt(ptbak,m);
@@ -95,7 +95,7 @@ lila_gradient_move_pt(const char *seq,
   
   
   for(i=0;i<count;i++) {
-    neighbours[i].ediff = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
+    neighbours[i].ediff = vrna_eval_move_pt(vc,pt,mvs[i].left,mvs[i].right);
     /* do the move now on the pair table */
     short int *ptbak = vrna_pt_copy(pt);
     lila_apply_move_pt(ptbak,mvs[i]);
@@ -128,7 +128,7 @@ lila_adaptive_move_pt(const char *seq,
 
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   for(i=0;i<count;i++) {
-    if(vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P) < 0){
+    if(vrna_eval_move_pt(vc,pt,mvs[i].left,mvs[i].right) < 0){
       /* here we should also accept degenerate moves IFF the target
 	 structure is lexicographically smaller that the source
 	 structure - check that !*/
@@ -176,12 +176,12 @@ lila_all_adaptive_moves_pt(const char *seq,
 
 #ifdef PARANOID
   { /* begin paranoid energy evaluation  REMOVE ME */
-     e = vrna_eval_structure_pt(seq,pt,P);
+     e = vrna_eval_structure_pt(vc,pt);
   } /* end paranoid energy evaluation */
 #endif
   
   for(i=0;i<count;i++){
-    int ediff = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
+    int ediff = vrna_eval_move_pt(vc,pt,mvs[i].left,mvs[i].right);
     if (want_degenerate == 1){
       if(ediff <= 0){
 	allmvs[j] = mvs[i];
@@ -203,7 +203,7 @@ lila_all_adaptive_moves_pt(const char *seq,
 	  /* copy pair table, operate on this copy */
 	  ptbak = vrna_pt_copy(pt);
 	  /* compute energy difference for this move */
-	  emove = vrna_eval_move_pt(ptbak,s0,s1,m.left,m.right,P);
+	  emove = vrna_eval_move_pt(vc,ptbak,m.left,m.right);
 	  /* evaluate energy of the new structure */
 	  enew = e + emove;
 	  /* do the move */

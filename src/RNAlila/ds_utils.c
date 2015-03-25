@@ -97,7 +97,7 @@ lila_print_dbe(void *data,
   LilaDBE *foo = (LilaDBE *)data;
   fprintf(stderr,"%s %6.2f ",foo->structure,foo->energy);
   if(user_data != NULL)
-    fprintf(stderr,"%s ",user_data);
+    fprintf(stderr,"%s ",(char*)user_data);
   fprintf(stderr,"\n");
 }
 

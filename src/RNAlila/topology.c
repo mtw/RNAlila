@@ -27,7 +27,7 @@ lila_is_minimum_or_shoulder_pt(const char *seq, short int *pt)
   
   count = lila_construct_moves((const char *)seq,pt,1,&mvs);
   for(i=0;i<count;i++) {
-    emove = vrna_eval_move_pt(pt,s0,s1,mvs[i].left,mvs[i].right,P);
+    emove = vrna_eval_move_pt(vc,pt,mvs[i].left,mvs[i].right);
     if (emove < 0){ /* lower energy neighbor found */
       free(mvs);
       return 0;
@@ -73,7 +73,7 @@ lila_get_cc_pt(const char *seq,
   /* add first element to cc list */
   element = (LilaDBE*)calloc(1,sizeof(LilaDBE));
   element->structure = strdup(v);
-  element->energy = vrna_eval_structure(seq,v,P);
+  element->energy = vrna_eval_structure(vc,v);
   /* fprintf(stderr, "\n%s (%6.2f) added to cc list I\n",v,element->energy); */
   cc = g_list_append(cc,element);
   /* fprintf(stderr, "%s PUSH\n",v); */
@@ -87,7 +87,7 @@ lila_get_cc_pt(const char *seq,
 
     v2 = (char*)g_queue_pop_head(TODO);
     p = vrna_pt_get(v2);
-    e = vrna_eval_structure_pt(seq,p,P);
+    e = vrna_eval_structure_pt(vc,p);
     /* fprintf(stderr,"%s (%6.2f) POP queuelen=%i\n", */
     /*    v2,(float)e/100, g_queue_get_length(TODO)); */ 
     
@@ -96,7 +96,7 @@ lila_get_cc_pt(const char *seq,
     /* fprintf(stderr,">>> %i moves possible\n", count); */
 
     for(i=0;i<count;i++) {
-      emove = vrna_eval_move_pt(p,s0,s1,mvs[i].left,mvs[i].right,P);
+      emove = vrna_eval_move_pt(vc,p,mvs[i].left,mvs[i].right);
       /* fprintf(stderr," move #%i l:%3i|r:%3i  ",i,mvs[i].left,mvs[i].right); */
       /* fprintf(stderr," d(%6.2f) ",(float)emove/100); */
       
@@ -119,7 +119,7 @@ lila_get_cc_pt(const char *seq,
 	  LilaDBE *e = NULL;
 	  e = (LilaDBE*)calloc(1,sizeof(LilaDBE));
 	  e->structure = strdup(w);
-	  e->energy = vrna_eval_structure(seq,w,P);
+	  e->energy = vrna_eval_structure(vc,w);
 	  cc = g_list_append(cc,e);
 	  /* fprintf(stderr, "%s (%6.2f) added to cc list\n",e->structure,e->energy); */
 	  /* fprintf(stderr,"\n");  */
