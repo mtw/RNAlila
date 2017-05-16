@@ -1,6 +1,6 @@
 /*
   lila.h : common definitions for RNAlila
-  Last changed Time-stamp: <2015-02-08 22:30:07 mtw>
+  Last changed Time-stamp: <2016-08-31 11:33:21 mtw>
 */
 
 #ifndef __RNA_LILA_H__
@@ -44,7 +44,7 @@ typedef Lila2seT LilaDBE;   /* dot bracket & energy */
 /* variables */
 vrna_param_t *P;
 vrna_md_t md;
-vrna_fold_compound *vc;
+vrna_fold_compound_t *vc;
 short int *pt,*s0,*s1;
 vRNAcommonT vcd;         /* ViennaRNA common (model) details */
 lilassT lilass;          /* start sequence && start structure */

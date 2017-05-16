@@ -1,6 +1,6 @@
 /*
   lila.c: common routines for RNAlila
-  Last changed Time-stamp: <2015-02-04 17:17:44 mtw>
+  Last changed Time-stamp: <2016-08-31 16:12:30 mtw>
 */
 
 #include <stdio.h> 
@@ -24,8 +24,8 @@ lila_ini_vcd_options(void)
 void
 lila_ini_vRNA (const char *seq)
 {
-  P  = vrna_params_get(&md);
-  vc = vrna_get_fold_compound(seq, &md,VRNA_OPTION_MFE);
+  P  = vrna_params(&md);
+  vc = vrna_fold_compound(seq, &md,VRNA_OPTION_MFE);
   s0 = vrna_seq_encode_simple(seq,&(P->model_details));
   s1 = vrna_seq_encode(seq,&(P->model_details));
 }
@@ -37,7 +37,7 @@ lila_vRNA_cleanup(void)
   free(s0);
   free(s1);
   free(P);
-  vrna_free_fold_compound(vc);
+  vrna_fold_compound_free(vc);
 }
 
 
@@ -59,7 +59,7 @@ lila_set_vcd_options(const unsigned int temp_given,
       fprintf(stderr, "Value of --temp must be > -273.15\n");
       exit (EXIT_FAILURE);
     }
-    vrna_md_set_temperature(&md,vcd.temperature);
+    md.temperature=vcd.temperature;
   }
   /* dangles */
   if(dangles_given){
@@ -71,17 +71,17 @@ lila_set_vcd_options(const unsigned int temp_given,
       fprintf(stderr, "Value of --dangles must be <= 3\n");
       exit (EXIT_FAILURE);
     }
-    vrna_md_set_dangles(&md,vcd.dangles);
+    md.dangles=vcd.dangles;
   }
   /* betaScale */
   if(betaScale_given){
     vcd.betaScale = betaScale_arg;
-    vrna_md_set_betascale(&md,vcd.betaScale);
+    md.betaScale=vcd.betaScale;
   }
   /* noLP */
   if(noLP_given){
     vcd.noLP = noLP_flag; /* 0 or 1 */
-    vrna_md_set_nolp(&md,vcd.noLP);
+    md.noLP=vcd.noLP;
   }
 }
 

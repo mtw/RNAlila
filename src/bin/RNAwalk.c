@@ -1,6 +1,6 @@
 /*
   RNAwalk.c
-  Last changed Time-stamp: <2015-02-20 12:00:06 mtw>
+  Last changed Time-stamp: <2016-08-31 16:25:56 mtw>
 */
 
 #include <stdio.h>
@@ -80,7 +80,7 @@ main(int argc, char **argv)
     }
   */
   
-  pt = vrna_pt_get(lilass.structure);
+  pt = vrna_ptable(lilass.structure);
   energy = vrna_eval_structure_pt(vc,pt); 
   // this could be done directly via vrna_eval_structure_simple
   //float e2 = vrna_eval_structure(lilass.sequence,lilass.structure,P);
@@ -130,7 +130,7 @@ walk (int e)
     while(len<local_opt.walklen){
       char status[] = "x";
       /* backup current structure */
-      short int *ptbak = vrna_pt_copy(pt);
+      short int *ptbak = vrna_ptable_copy(pt);
       /* return gradient move */
       m = lila_gradient_move_pt(lilass.sequence,pt);
       /* compute energy difference for this move */
@@ -235,7 +235,7 @@ walk (int e)
       while ( (bar = (LilaDBE*)g_queue_pop_head(nb)) != NULL){
 	int min;
 	GList *gliste;
-	short int *pt = vrna_pt_get(bar->structure);
+	short int *pt = vrna_ptable(bar->structure);
 	gliste = lila_get_cc_pt(lilass.sequence,pt,&min);
 	lila_output_dbe_glist(gliste, "CC");
 	lila_dealloc_dbe_glist(gliste);
@@ -360,7 +360,7 @@ AWmin(short int *pt)
   }
   else{
     for(i=0;i<count;i++){ /* loop over all move operations */
-      ptbak = vrna_pt_copy(pt);
+      ptbak = vrna_ptable_copy(pt);
       char *v;
       /*
 	v = lila_db_from_pt(pt);

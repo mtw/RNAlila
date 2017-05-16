@@ -2,7 +2,7 @@
   topology.c : routines for determining topological properties of RNA
   energy landscapes
 
-  Last changed Time-stamp: <2014-09-08 16:29:10 mtw>
+  Last changed Time-stamp: <2016-08-31 16:20:51 mtw>
 */
 
 #include <stdio.h>
@@ -86,7 +86,7 @@ lila_get_cc_pt(const char *seq,
     short int *p = NULL;
 
     v2 = (char*)g_queue_pop_head(TODO);
-    p = vrna_pt_get(v2);
+    p = vrna_ptable(v2);
     e = vrna_eval_structure_pt(vc,p);
     /* fprintf(stderr,"%s (%6.2f) POP queuelen=%i\n", */
     /*    v2,(float)e/100, g_queue_get_length(TODO)); */ 
@@ -102,7 +102,7 @@ lila_get_cc_pt(const char *seq,
       
       if(emove == 0){ 	/* degenerate neighbor */
 	/* fprintf(stderr, "degenerate  \n"); */
-	short int *ptbak = vrna_pt_copy(p);
+	short int *ptbak = vrna_ptable_copy(p);
 	lila_apply_move_pt(ptbak,mvs[i]);
 	char *w,*wT,*wS;
 	w = lila_db_from_pt(ptbak);

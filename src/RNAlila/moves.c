@@ -1,6 +1,6 @@
 /*
   moves.c : move-set related routines for RNAlila
-  Last changed Time-stamp: <2015-02-19 20:38:08 mtw>
+  Last changed Time-stamp: <2016-08-31 16:18:13 mtw>
 */
 
 #include <stdio.h>
@@ -45,7 +45,7 @@ lila_generate_neighbors_pt(const char *seq,
     move_str m = mvs[i];
     int emove =  vrna_eval_move_pt(vc,pt,m.left,m.right);
     
-    short int *ptbak = vrna_pt_copy(pt);
+    short int *ptbak = vrna_ptable_copy(pt);
     lila_apply_move_pt(ptbak,m);
     char *struc =  lila_db_from_pt(ptbak);
     nb->structure = strdup(struc);
@@ -97,9 +97,9 @@ lila_gradient_move_pt(const char *seq,
   for(i=0;i<count;i++) {
     neighbours[i].ediff = vrna_eval_move_pt(vc,pt,mvs[i].left,mvs[i].right);
     /* do the move now on the pair table */
-    short int *ptbak = vrna_pt_copy(pt);
+    short int *ptbak = vrna_ptable_copy(pt);
     lila_apply_move_pt(ptbak,mvs[i]);
-    neighbours[i].struc = vrna_pt_to_db(ptbak); 
+    neighbours[i].struc = vrna_db_from_ptable(ptbak); 
     neighbours[i].n = i;
     free(ptbak);
   }
