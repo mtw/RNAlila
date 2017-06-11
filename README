@@ -1,0 +1,36 @@
+# RNAlila 0.2
+
+RNAlila is a C library for RNA energy landscapes, built on top of the
+library of the ViennaRNA Package (https://www.tbi.univie.ac.at/RNA). It
+provides library functions for investigative exploration of RNA landscape
+features such as the neighborhood of secondary structures or different
+types of walks, including adaptive, random and gradient walks starting from
+a specific structure.
+
+RNAlila is distributed with two executales:
+  * RNAwalk performs adaptive, gradient or random walks starting from a
+  secondary structure 
+  * RNArandstruc computes *randomly* distributed structures over the
+  Boltzmann ensemble for a RNA sequence
+  
+
+# DISCLAIMER AND LICENSE
+
+The programs, library and source code of RNAlila are free software. They
+are distributed in the hope that they will be useful but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.
+
+Permission is granted for research, educational, and commercial use and
+modification so long as 1) the package and any derived works are not
+redistributed for any fee, other than media costs, 2) proper credit is
+given to the authors and the Institute for Theoretical Chemistry of the
+University of Vienna.
+
+If you want to include this software in a commercial product, please
+contact the authors.
+
+This is experimental software. **Hic sunt dracones**
+
+
+
