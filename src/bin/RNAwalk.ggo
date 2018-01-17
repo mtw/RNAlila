@@ -25,11 +25,11 @@ optional
 
 section "Options specific to adaptive walks"
 
-option "awmin" - 
-"Compute all minima that are reachable from a specific start structure \
-via (all possible) adaptive walks"
-flag
-off
+#option "awmin" - 
+#"Compute all minima that are reachable from a specific start structure \
+#via (all possible) adaptive walks"
+#flag
+#off
 
 
 section "ViennaRNA-specific options"
